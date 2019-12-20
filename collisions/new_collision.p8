@@ -6,32 +6,38 @@ __lua__
 function _init()
 	x = 50
 	y = 50
+	width = 3
+	height = 3
 end
 
 function _update()
-	if btn(0) then
-		x+=1
-		y+=1
-	end
-	if btn(1) then
-		x+=1
-		y-=1
-	end
-	if btn(2) then
-		x-=1
-		y+=1
-	end
-	if btn(3) then
-		x-=1
-		y-=1
+	rectfill(0, 0, 10, 127, 14)
+	local color1 = pget(x-1, y-1)
+	if not(color1 > 1) then
+		get_input()
 	end
 end
 
 function _draw()
 	cls()
 	rectfill(0, 0, 10, 127, 14)
+	rectfill(x, y, x+width, y+height, 7)
 end
 
+function get_input()
+	if btn(0) then
+		x-=1
+	end
+	if btn(1) then
+		x+=1
+	end
+	if btn(2) then
+		y-=1
+	end
+	if btn(3) then
+		y+=1
+	end
+end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
