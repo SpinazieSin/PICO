@@ -1,26 +1,36 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
-
 function _init()
-	p_x = 0
-	p_y = 0
+	p_x=0
+	p_y=0
+	p_dy=0.3
+	p_dx=0.3
+	p_coll=false
+end
+
+
+function jump()
+	
 end
 
 function _update()
 	if btn(0) then
-		p_x-=1
+		p_dx-=p_dx
 	end
 	if btn(1) then
-		p_x+=1
+		p_dx+=p_dx
 	end
 	if btn(2) then
-		p_y-=1
+		p_dy+=p_dy
 	end
 	if btn(3) then
-		p_y+=1
+		p_dy-=p_dy
 	end
+	p_x+=p_dx
+	p_y+=p_dy
 end
+
 
 function _draw()
 	cls(1)
