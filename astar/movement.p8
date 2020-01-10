@@ -3,7 +3,6 @@ version 18
 __lua__
  
 function _init()
-	printh("---- start ----")
 	pal_switch = false
 	if pal_switch then
 		poke(0x5f2e,1)
@@ -31,6 +30,8 @@ function _init()
  goal = getspecialtile(waterid)
  path = astar(start, goal)
  path_index = 1
+ 
+ math_e = 2.71828
 end
 
 function _update()
@@ -228,6 +229,9 @@ function vectoindex(vec)
  return ((vec[1]+1) * 128) + vec[2]
 end
 
+function sigmoid(x)
+	return 1/(1+math_e^-x)
+end
 __gfx__
 00000000ddd4dddd0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000004444444d0006666000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
