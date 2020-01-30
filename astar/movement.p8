@@ -172,6 +172,8 @@ function getneighbours(pos)
  local neighbours={}
  local x = pos[1]
  local y = pos[2]
+ -- todo --
+ -- check if x < 15 makes any sense
  if x > 0 and (mget(x-1,y) != wallid) then
   add(neighbours,{x-1,y})
  end
