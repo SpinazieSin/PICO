@@ -1,32 +1,38 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
- 
+
+-- a simple movement demo for a-star
+-- a* -- < this shows important components
 function _init()
-	pal_switch = false
-	if pal_switch then
-		poke(0x5f2e,1)
-		for i=3,16 do
-			pal(i, 128+i, 1)
-		end
-	end
-	
+ pal_switch = false
+ if pal_switch then
+  poke(0x5f2e,1)
+  for i=3,16 do
+   pal(i, 128+i, 1)
+  end
+ end
+ 
  cam_x = 0
  cam_y = 0
 
-	nsprite = 2
-	nx = 1
-	ny = 1
-	dnx = 0.7/8
-	dny = 0.7/8
-	anim_time = 0
+ nsprite = 2
+ nx = 1
+ ny = 1
+ dnx = 0.7/8
+ dny = 0.7/8
+ anim_time = 0
 
+ -- a* --
+ -- id's used by astar
  wallid = 1
- slowid = 2
-	waterid = 3
-	npcid = 4
-	
-	start = {1,1}
+ rough_terrain_id = 2
+
+ -- other id's
+ waterid = 3
+ npcid = 4
+ 
+ start = {1,1}
  goal = getspecialtile(waterid)
  path = astar(start, goal)
  path_index = 1
@@ -35,7 +41,7 @@ function _init()
 end
 
 function _update()
-	update_game()
+ update_game()
 end
 
 function _draw()
@@ -45,36 +51,36 @@ function _draw()
 end
 
 function update_game()
-	-- speed state
-	local new_dnx = 0
-	local new_dny = 0
-	if #path+1 > path_index then
-		tx = path[path_index][1]
-		ty = path[path_index][2]
-		new_dnx = dnx*ceil(tx-nx)
-		new_dny = dny*ceil(ty-ny)
-		if flr(nx) == tx and flr(ny) == ty then
-			path_index += 1
-		end
-	end
-	nx += new_dnx
-	ny += new_dny
-	
+ -- speed state
+ local new_dnx = 0
+ local new_dny = 0
+ if #path+1 > path_index then
+  tx = path[path_index][1]
+  ty = path[path_index][2]
+  new_dnx = dnx*ceil(tx-nx)
+  new_dny = dny*ceil(ty-ny)
+  if flr(nx) == tx and flr(ny) == ty then
+   path_index += 1
+  end
+ end
+ nx += new_dnx
+ ny += new_dny
+ 
  -- animation state
-	if new_dnx > 0 or new_dny > 0 then
-		anim_time += 1
-		if anim_time%6 == 0 then
-			anim_time = 0
-			if nsprite == 2 then
-				nsprite = 3
-			else
-				nsprite = 2
-			end
-		end
-	else
-			nsprite = 18
-	end
-	
+ if new_dnx > 0 or new_dny > 0 then
+  anim_time += 1
+  if anim_time%6 == 0 then
+   anim_time = 0
+   if nsprite == 2 then
+    nsprite = 3
+   else
+    nsprite = 2
+   end
+  end
+ else
+   nsprite = 18
+ end
+ 
  if (btn(0) and cam_x > 0) then
   cam_x -= 1
  end
@@ -90,8 +96,12 @@ function update_game()
  camera(cam_x, cam_y) 
 end
 
+-- a* --
+-- returns a path from start to goal
+-- where start and goal are arbitrary map locations
+-- if no path exists return nil
 function astar(start, goal)
- found_goal=false
+ found_goal = false
  frontier = {}
  insert(frontier, start, 0)
  came_from = {}
@@ -99,11 +109,13 @@ function astar(start, goal)
  cost_so_far = {}
  cost_so_far[vectoindex(start)] = 0
 
- while (#frontier > 0 and #frontier < 1000) do
+ -- a* --
+ -- #frontier < 200 indicates max search space
+ while (#frontier > 0 and #frontier < 200) do
   current = popend(frontier)
 
   if vectoindex(current) == vectoindex(goal) then
-   found_goal=true
+   found_goal = true
    break
   end
 
@@ -112,6 +124,8 @@ function astar(start, goal)
   for next in all(neighbours) do
    -- if next is rough terrain, add custom cost
    if fget(mget(next[1], next[2]), rough_terrain_id) then
+    -- a* --
+    -- change for a custom path cost
     terrain_cost = 2
    else
     terrain_cost = 1
@@ -128,6 +142,7 @@ function astar(start, goal)
   end
  end
 
+ -- the important bit
  if found_goal then
   current = came_from[vectoindex(goal)]
   path = {}
@@ -140,8 +155,8 @@ function astar(start, goal)
    cindex = vectoindex(current)
   end
   reverse(path)
-		
-		return path
+  
+  return path
  else
   return nil
  end
@@ -151,6 +166,8 @@ function heuristic(a, b)
  return abs(a[1] - b[1]) + abs(a[2] - b[2])
 end
 
+-- a* --
+-- in case you want to modify the neighbour function
 function getneighbours(pos)
  local neighbours={}
  local x = pos[1]
@@ -230,7 +247,7 @@ function vectoindex(vec)
 end
 
 function sigmoid(x)
-	return 1/(1+math_e^-x)
+ return 1/(1+math_e^-x)
 end
 __gfx__
 00000000ddd4dddd0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
