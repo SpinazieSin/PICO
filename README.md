@@ -1,13 +1,13 @@
-## Repo for pico games and experiments
+# Repo for pico games and experiments  
 
-### mydemos
+## mydemos
 Code snippets and random modules.
 
-### faxanadu
+## faxanadu
 In progress faxanadu demake
 
-### game0
+## game0
 Testing folder for an in progress game
 
-
-Requires https://www.lexaloffle.com/pico-8.php to run.
+  
+###### Requires https://www.lexaloffle.com/pico-8.php to run.
