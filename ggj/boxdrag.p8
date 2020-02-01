@@ -110,8 +110,10 @@ function add_enemy(x, y)
   y=y,
   dx = 0.5,
   dy = 0.5,
+  anim_time = 0,
   path_index,
   size=6,
+  sprite=6,
   selected = false,
   path = {},
   cooldown = 0,
@@ -175,7 +177,17 @@ function add_enemy(x, y)
 
   end,
   draw = function(self)
-   spr(6, self.x, self.y)
+   local anim_time = self.anim_time
+   if anim_time%12 == 0 then
+    if self.sprite == 6 then
+     self.sprite = 5
+    else
+     self.sprite = 6
+    end
+    self.anim_time = 0
+   end
+   self.anim_time += 1
+   spr(self.sprite, self.x, self.y)
    if self.selected then
     spr(16, self.x, self.y)
    end
