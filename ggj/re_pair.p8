@@ -222,7 +222,7 @@ function add_unit(x, y, unit_number, isfriendly)
   anim_states = {anim_state(7, 1, 1, 0, 0),
                  anim_state(8, 1, 1, 0, 0)}
   shdw = {x = 3, y = 5, r = 3}
-  anim_speed = 12
+  anim_speed = 9
   attack_speed = 15
   size = 6
   dx = 0.5
@@ -243,7 +243,7 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 3 then
   anim_states = {anim_state(11, 1, 1, 0, -2),
                  anim_state(27, 1, 1, 0, -2)}
-  shdw = {x = 3, y = 5, r = 2}
+  shdw = {x = 4, y = 5, r = 3}
   anim_speed = 12
   attack_speed = 15
   size = 7
@@ -254,7 +254,7 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 4 then
   anim_states = {anim_state(12, 2, 2, 0, 0),
                  anim_state(14, 2, 2, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
+  shdw = {x = 7, y = 14, r = 5}
   anim_speed = 18
   attack_speed = 30
   size = 14
@@ -263,7 +263,7 @@ function add_unit(x, y, unit_number, isfriendly)
   hp = 450
   pow = 190
  elseif unit_number == 5 then
-  anim_states = {anim_state(44, 2, 2, 0, 0),
+  anim_states = {anim_state(44, 2, 2, 0, -2),
                  anim_state(62, 2, 1, 0, 0)}
   shdw = {x = 7, y = 7, r = 4}
   anim_speed = 18
@@ -276,8 +276,8 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 6 then
   anim_states = {anim_state(19, 1, 1, 0, 0),
                  anim_state(20, 1, 1, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
-  anim_speed = 12
+  shdw = {x = 4, y = 8, r = 3}
+  anim_speed = 9
   attack_speed = 15
   size = 6
   dx = 0.5
@@ -289,7 +289,7 @@ function add_unit(x, y, unit_number, isfriendly)
                  anim_state(6, 1, 1, 0, 0),
                  anim_state(21, 1, 1, 0, 0),
                  anim_state(22, 1, 1, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
+  shdw = {x = 3, y = 7, r = 3}
   anim_speed = 12
   attack_speed = 15
   size = 7
@@ -300,7 +300,7 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 8 then
   anim_states = {anim_state(23, 1, 1, 0, 0),
                  anim_state(24, 1, 1, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
+  shdw = {x = 3, y = 7, r = 3}
   anim_speed = 12
   attack_speed = 15
   size = 7
@@ -311,7 +311,7 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 9 then
   anim_states = {anim_state(25, 2, 2, 0, 0),
                  anim_state(39, 2, 2, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
+  shdw = {x = 7, y = 14, r = 5}
   anim_speed = 18
   attack_speed = 20
   size = 14
@@ -322,7 +322,7 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 10 then
   anim_states = {anim_state(35, 2, 2, 0, 0),
                  anim_state(37, 2, 2, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
+  shdw = {x = 8, y = 13, r = 5}
   anim_speed = 18
   attack_speed = 30
   size = 14
@@ -555,7 +555,16 @@ add(units,{
    -- unit dies
    if self.hp < 0 then
     del(units, self)
-    printh("dead particles")
+    local middle = size/2
+    for _=1,10 do
+     add_particle(0, self.x + middle, self.y + middle, flr(rnd(5.9)+1), rnd(2.3)-1, rnd(1.9)+1, rnd(1.2)+.2)
+    end 
+    for _=1,20 do
+     add_particle(7, self.x + middle, self.y + middle, flr(rnd(1.9)+1), 0, nil, rnd(1.9)+1.5)
+    end  
+    for _=1,20 do
+     add_particle(7, self.x + middle, self.y + middle - 2, flr(rnd(1.9)+1), nil, 0, rnd(1.9)+1.5)
+    end
    end
 
    -- unit base expansion
@@ -598,6 +607,9 @@ add(units,{
   shadow = function(self)
    local shdw = self.shdw
    circfill(self.x + shdw.x, self.y + shdw.y , shdw.r, 0)
+   if self.selected then
+    circ(self.x + shdw.x, self.y + shdw.y , shdw.r, 11)
+   end
   end,
 
   draw = function(self)
@@ -613,9 +625,6 @@ add(units,{
 
    local anim = self.anim_states[self.anim_index]
    spr(anim.spr_n, self.x + anim.x_offset, self.y + anim.y_offset, anim.x_width, anim.y_width, self.left)
-   if self.selected then
-    spr(16, self.x, self.y)
-   end
   end})
 end
 
