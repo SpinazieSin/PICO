@@ -18,7 +18,7 @@ function _init()
 -- init color vars for different races
 	col_a = 12
 	col_n = 8
-	edge_pos_x = 90
+	edge_pos_x = 63
 	edge_pos_y = 63
 	wall_id = 1
 end
@@ -45,16 +45,27 @@ function _update()
 			add_particle(flr(rnd(2.9)+4), rnd(3.9)+edge_pos_x, rnd(3.9)+edge_pos_y, flr(rnd(.9)+.2),0,rnd(2)-1,5, rnd(30)+10)
 			add_particle(flr(rnd(1.9)+1), rnd(3.9)+edge_pos_x, rnd(3.9)+edge_pos_y, flr(rnd(.9)+.2),0,rnd(2)-1,5, rnd(30)+10)
 			add_particle(0, rnd(3.9)+edge_pos_x, rnd(3.9)+edge_pos_y, flr(rnd(.9)+.5),0,rnd(2)-1,5, rnd(30)+10)
-			end			
-			]]
-			--particle for merging units, for network use col_b and for the second particle use color 10
-			
+			end		
+			--particle for merging units, for network use col_b and for the second particle use color 10			
 			for _=1,20 do
 			add_particle(flr(rnd(1.9)+col_a), nil, nil, flr(rnd(6.9)+1), rnd(2)-1, rnd(2)-1, rnd(1.3)+1)
 			end	
 			for _=1,20 do
 			add_particle(14, nil, nil, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1.5)
-			end
+			end	
+			]]
+			--particle effect for death
+			--particle for merging units, for network use col_b and for the second particle use color 10
+			
+			for _=1,10 do
+			add_particle(0, nil, edge_pos_y -6, flr(rnd(5.9)+1), rnd(2.3)-1, rnd(1.9)+1, rnd(1.2)+.2)
+			end	
+			for _=1,20 do
+			add_particle(7, nil, nil, flr(rnd(1.9)+1), 0, nil, rnd(1.9)+1.5)
+			end		
+			for _=1,20 do
+			add_particle(7, nil, edge_pos_y -2, flr(rnd(1.9)+1), nil, 0, rnd(1.9)+1.5)
+			end		
 
 	end
 	if btn(5) and not(sprint_speed < 2) then
