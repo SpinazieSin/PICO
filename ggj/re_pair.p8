@@ -498,7 +498,6 @@ add(units,{
 
    -- enemy unit control
    else
-    printh("enemy")
 
     -- enemy above
     if self.attack_time == 0 then
@@ -513,6 +512,7 @@ add(units,{
      local tgt_y = y
      local a_x = 0
      local a_y = 0
+
      if pget(x, above_tgt) == friendlyid then
       self.attack_y = -2
       tgt_y = above_tgt
@@ -530,7 +530,6 @@ add(units,{
      end
 
      if attack then
-      printh("NO ATTACK")
       self.x += self.attack_x
       self.y += self.attack_y
       self.attack_time += 1
@@ -542,7 +541,6 @@ add(units,{
       dx, dy = 0
      end
     elseif self.attack_time > 0 then
-     printh("NOTHINS")
      self.attack_time += 1
      if self.attack_time > self.attack_speed then
       self.attack_time = 0
@@ -558,10 +556,10 @@ add(units,{
     local middle = size/2
     for _=1,10 do
      add_particle(0, self.x + middle, self.y + middle, flr(rnd(5.9)+1), rnd(2.3)-1, rnd(1.9)+1, rnd(1.2)+.2)
-    end 
+    end
     for _=1,20 do
      add_particle(7, self.x + middle, self.y + middle, flr(rnd(1.9)+1), 0, nil, rnd(1.9)+1.5)
-    end  
+    end
     for _=1,20 do
      add_particle(7, self.x + middle, self.y + middle - 2, flr(rnd(1.9)+1), nil, 0, rnd(1.9)+1.5)
     end
