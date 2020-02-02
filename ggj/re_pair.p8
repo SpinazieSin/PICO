@@ -15,16 +15,16 @@ function _init()
  enemies = {}
  add_unit(50, 30, 1, true)
  add_unit(70, 30, 1, true)
- add_unit(10, 30, 2, true)
- add_unit(30, 30, 3, true)
- add_unit(90, 30, 4, true)
- add_unit(110, 30, 5, true)
- add_unit(120, 85, 6, false)
- add_unit(20, 85, 6, false)
- add_unit(40, 85, 7, false)
- add_unit(60, 85, 8, false)
- add_unit(80, 85, 9, false)
- add_unit(100, 85, 10, false)
+--  add_unit(10, 30, 2, true)
+--  add_unit(30, 30, 3, true)
+--  add_unit(90, 30, 4, true)
+--  add_unit(110, 30, 5, true)
+--  add_unit(120, 85, 6, false)
+--  add_unit(20, 85, 6, false)
+--  add_unit(40, 85, 7, false)
+--  add_unit(60, 85, 8, false)
+--  add_unit(80, 85, 9, false)
+--  add_unit(100, 85, 10, false)
  cam_x = 0
  cam_y = 0
  mxo = 0
@@ -100,6 +100,9 @@ function _update()
    friendly_selected = true
   end
  end
+
+ spawn_team(false)
+ spawn_team(true)
 
  -- resolve combat
  while #attacks > 0 do
@@ -985,6 +988,40 @@ function add_particle(clr, x, y, r, dx, dy, lifespan)
 			end
 		end})
 end
+
+
+function spawn_team(enemies)
+ printh(enemies)
+ local upper_y
+ local lower_y
+ local left_x
+ local right_x
+ if enemies then
+  upper_y = 70
+  lower_y = 50
+  left_x = 10
+  right_x = 100
+ else
+  upper_y = 30
+  lower_y = 10
+  left_x = 10
+  right_x = 100
+ end
+ -- random location
+ random_x = flr(rnd(right_x - left_x) + left_x)
+ random_y = flr(rnd(upper_y - lower_y) + lower_y)
+ -- random enemy type
+ if enemies then
+  random_type = flr(rnd(5)) + 6
+ else
+  random_type = flr(rnd(5)) + 1
+ end
+ -- random check to control spawn rate
+ if rnd(1000) > 999 then
+  add_unit(random_x, random_y, random_type, not(enemies))
+ end
+end
+
 __gfx__
 00010000000010000000000000000007000001b0000000000009000000000000000000000000000000000000003cc00000000000000000000000000000000000
 001c10000011b1100000b000000010c1001111b10000000000000099000ccc00000000000100001010ccc0013ccccc0000000000000000000000000000000000
