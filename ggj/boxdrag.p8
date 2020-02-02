@@ -13,11 +13,18 @@ function _init()
  hold = false
  units = {}
  enemies = {}
- add_unit(40, 40, 1, true)
- add_unit(60, 60, 2, false)
- add_unit(80, 80, 3, true)
- add_unit(40, 80, 4, true)
- add_unit(80, 40, 1, true)
+ add_unit(20, 50, 1, true)
+ add_unit(20, 70, 1, true)
+ add_unit(40, 60, 2, true)
+ add_unit(60, 60, 3, true)
+ add_unit(80, 60, 4, true)
+ add_unit(100, 60, 5, true)
+ add_unit(20, 90, 6, true)
+ add_unit(20, 110, 6, true)
+ add_unit(40, 100, 7, true)
+ add_unit(60, 100, 8, true)
+ add_unit(80, 100, 9, true)
+ add_unit(100, 100, 10, true)
  cam_x = 0
  cam_y = 0
  mxo = 0
@@ -25,6 +32,11 @@ function _init()
  friendlyid = 1
  enemyid = 2
  attacks = {}
+ pcls = {}
+
+ -- init color vars for different races
+ col_a = 12
+ col_n = 8
 end
 
 function _update()
@@ -60,16 +72,23 @@ function _update()
   del(attacks, attacks[1])
  end
 
+ for pcl in all(pcls) do
+  pcl:update()
+ end
 end
  
 function _draw()
  -- cls for drawing
- cls(1)
+ cls(0)
  map()
 
  for unit in all(units) do
   unit:shadow()
   unit:draw()
+ end
+
+ for pcl in all(pcls) do
+  pcl:draw()
  end
 
  if mp == 1 then
@@ -91,7 +110,6 @@ function _draw()
  else
   hold = false
  end
-
 
  spr(0, mx-3, my)
  print("mem:"..stat(0), cam_x, cam_y, 7)
@@ -150,6 +168,7 @@ function add_unit(x, y, unit_number, isfriendly)
  local dy
  local hp
  local id
+ local attack_speed
 
  if isfriendly then
   id = 1
@@ -163,44 +182,116 @@ function add_unit(x, y, unit_number, isfriendly)
                  anim_state(8, 1, 1, 0, 0)}
   shdw = {x = 3, y = 5, r = 3}
   anim_speed = 12
+  attack_speed = 15
   size = 6
   dx = 0.5
   dy = 0.5
   hp = 100
   pow = 40
  elseif unit_number == 2 then
-  anim_states = {anim_state(5, 1, 1, 0, 0),
-                 anim_state(6, 1, 1, 0, 0)}
+  anim_states = {anim_state(9, 1, 1, 0, 0),
+                 anim_state(10, 1, 1, 0, 0)}
   shdw = {x = 4, y = 7, r = 3}
   anim_speed = 12
-  size = 6
-  dx = 0.5
-  dy = 0.5
-  hp = 100
-  pow = 40
+  attack_speed = 15
+  size = 7
+  dx = 0.6
+  dy = 0.6
+  hp = 200
+  pow = 80
  elseif unit_number == 3 then
-  anim_states = {anim_state(19, 1, 1, 0, -2),
-                 anim_state(20, 1, 1, 0, -2)}
+  anim_states = {anim_state(11, 1, 1, 0, -2),
+                 anim_state(27, 1, 1, 0, -2)}
   shdw = {x = 3, y = 5, r = 2}
   anim_speed = 12
-  size = 6
-  dx = 0.5
-  dy = 0.5
-  hp = 100
-  pow = 40
+  attack_speed = 15
+  size = 7
+  dx = 0.8
+  dy = 0.8
+  hp = 180
+  pow = 90
  elseif unit_number == 4 then
+  anim_states = {anim_state(12, 2, 2, 0, 0),
+                 anim_state(14, 2, 2, 0, 0)}
+  shdw = {x = 7, y = 7, r = 4}
+  anim_speed = 18
+  attack_speed = 30
+  size = 14
+  dx = 0.6
+  dy = 0.6
+  hp = 450
+  pow = 190
+ elseif unit_number == 5 then
   anim_states = {anim_state(44, 2, 2, 0, 0),
                  anim_state(62, 2, 1, 0, 0)}
   shdw = {x = 7, y = 7, r = 4}
   anim_speed = 18
-  size = 12
+  attack_speed = 20
+  size = 14
   dx = 1.5
   dy = 1.5
+  hp = 300
+  pow = 225
+ elseif unit_number == 6 then
+  anim_states = {anim_state(19, 1, 1, 0, 0),
+                 anim_state(20, 1, 1, 0, 0)}
+  shdw = {x = 7, y = 7, r = 4}
+  anim_speed = 12
+  attack_speed = 15
+  size = 6
+  dx = 0.5
+  dy = 0.5
   hp = 100
-  pow = 101
+  pow = 40
+ elseif unit_number == 7 then
+  anim_states = {anim_state(5, 1, 1, 0, 0),
+                 anim_state(6, 1, 1, 0, 0),
+                 anim_state(21, 1, 1, 0, 0),
+                 anim_state(22, 1, 1, 0, 0)}
+  shdw = {x = 7, y = 7, r = 4}
+  anim_speed = 12
+  attack_speed = 15
+  size = 7
+  dx = 0.6
+  dy = 0.6
+  hp = 200
+  pow = 80
+ elseif unit_number == 8 then
+  anim_states = {anim_state(23, 1, 1, 0, 0),
+                 anim_state(24, 1, 1, 0, 0)}
+  shdw = {x = 7, y = 7, r = 4}
+  anim_speed = 12
+  attack_speed = 15
+  size = 7
+  dx = 0.8
+  dy = 0.8
+  hp = 180
+  pow = 90
+ elseif unit_number == 9 then
+  anim_states = {anim_state(25, 2, 2, 0, 0),
+                 anim_state(39, 2, 2, 0, 0)}
+  shdw = {x = 7, y = 7, r = 4}
+  anim_speed = 18
+  attack_speed = 20
+  size = 14
+  dx = 0.8
+  dy = 0.8
+  hp = 400
+  pow = 225
+ elseif unit_number == 10 then
+  anim_states = {anim_state(35, 2, 2, 0, 0),
+                 anim_state(37, 2, 2, 0, 0)}
+  shdw = {x = 7, y = 7, r = 4}
+  anim_speed = 18
+  attack_speed = 30
+  size = 14
+  dx = 0.6
+  dy = 0.6
+  hp = 500
+  pow = 150
  end
 
- add(units,{
+add(units,{
   x=x,
   y=y,
   dx = dx,
@@ -214,6 +305,7 @@ function add_unit(x, y, unit_number, isfriendly)
   id = id,
   shdw = shdw,
   unit_number = unit_number,
+  attack_speed = attack_speed,
   anim_time = 0,
   anim_index = 1,
   path_index,
@@ -333,6 +425,10 @@ function add_unit(x, y, unit_number, isfriendly)
       self.x += self.attack_x
       self.attack_time += 1
       add(attacks, {x = xtarget, y = y, pow = self.pow, friendly = self.isfriendly})
+      add_particle(5, xtarget, y, 3,nil,nil, 1)
+      for _=1,4 do
+       add_particle(flr(rnd(1.9)+col_n), xtarget, y, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
+      end
       dx, dy = 0
      elseif yid == enemyid and self.attack_time == 0 then
       self.attack_y = 2*sgn(dy)
@@ -340,6 +436,10 @@ function add_unit(x, y, unit_number, isfriendly)
       self.attack_time += 1
       add(attacks, {x = x, y = ytarget, pow = self.pow, friendly = self.isfriendly})
       dx, dy = 0
+      add_particle(5, x, ytarget, 3,nil,nil, 1)
+      for _=1,4 do
+       add_particle(flr(rnd(1.9)+col_n), x, ytarget, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
+      end
      end
     else
      self.moving = false
@@ -347,7 +447,7 @@ function add_unit(x, y, unit_number, isfriendly)
 
     if self.attack_time > 0 then
      self.attack_time += 1
-     if self.attack_time > 15 then
+     if self.attack_time > self.attack_speed then
       self.attack_time = 0
       self.x -= self.attack_x
       self.y -= self.attack_y
@@ -409,21 +509,32 @@ end
 
 -- Merge two units
 function merge(unit, other)
+ new_type = 0
  if unit.unit_number == 1 and other.unit_number == 1 then
-  -- RULE 1: Merge 1 and 1 into 2
-  new_type = unit.unit_number + other.unit_number
-  del(units, unit)
-  del(units, other)
-  add_unit(unit.x, unit.y, new_type, true)
- elseif unit.unit_number == 2 and other.unit_number == 1 then
-  -- RULE 2: Merge 2 and 1 into 3
-  new_type = unit.unit_number + other.unit_number
+  -- RULE 1: Merge 1 and 1 into 2 or 3
+  new_type = flr(rnd(2)) + 2
+ elseif unit.unit_number == 2 and other.unit_number == 2 then
+  -- RULE 2: Merge 2 and 2 into 4
+  new_type = 4
+ elseif unit.unit_number == 3 and other.unit_number == 3 then
+  -- RULE 3: Merge 3 and 3 into 5
+  new_type = 5
+ elseif unit.unit_number == 6 and other.unit_number == 6 then
+  -- RULE 4: Merge 6 and 6 into 7 or 8
+  new_type = flr(rnd(2)) + 7
+ elseif unit.unit_number == 7 and other.unit_number == 7 then
+  -- RULE 5: Merge 7 and 7 into 10
+  new_type = 10
+ elseif unit.unit_number == 8 and other.unit_number == 8 then
+  -- RULE 6: Merge 8 and 8 into 9
+  new_type = 9
+ end
+ if new_type != 0 then
   del(units, unit)
   del(units, other)
   add_unit(unit.x, unit.y, new_type, true)
  end
 end
-
 -->8
 
 -- a* --
@@ -579,6 +690,42 @@ function snap_mouse(c, mc)
  end
 end
 
+-->8
+
+function add_particle(clr, x, y, r, dx, dy, lifespan)
+	clr = clr or flr(rnd(16))
+	x = x or 63
+	y = y or 63
+	r = r or flr(rnd(2.9))+1
+	dx = dx or rnd(3)-1.5
+	dy = dy or rnd(3)-1.5
+	lifespan = lifespan or rnd(5)+5
+	add(pcls, {
+		x = x,
+		y = y,
+		r = r,
+		dx = dx,
+		dy = dy,
+		life = lifespan,
+		draw = function(self, x, y)
+			x = x or self.x
+			y = y or self.y
+			circfill(x, y, self.r, clr)
+		end,
+		update = function(self)
+			self.x += self.dx
+			self.y += self.dy
+			self.r -= 0.2
+			self.life -= 1
+			if self.life < 0 then
+				self.dx = self.dx/1.5
+				self.dy = self.dy/1.5
+			end
+			if abs(self.dx) < 0.05 and abs(self.dy) < 0.05 then
+				del(pcls, self)
+			end
+		end})
+end
 __gfx__
 00010000000010000000000000000007000001b0000000000009000000000000000000000000000000000000003cc00000000000000000000000000000000000
 001c10000011b1100000b000000010c1001111b10000000000000099000ccc00000000000100001010ccc0013ccccc0000000000000000000000000000000000
