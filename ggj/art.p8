@@ -15,7 +15,9 @@ function _init()
 	for i in all({1,3,5,6,11,12,15}) do
 		pal(i, 128+i, 1)
 	end
-	
+-- init color vars for different races
+	col_a = 12
+	col_n = 8
 	wall_id = 1
 end
 
@@ -25,8 +27,17 @@ function _update()
 	plr_dy = 0
 	
 	if btn(4) then
-		sprint_speed += 1
-		wall_id = 0
+			wall_id = 0	
+			--[[particle effect attack ANIMAL BASE
+			add_particle(1, nil, nil, 3,nil,nil, 1)
+			for _=1,4 do
+			add_particle(flr(rnd(1.9)+col_a), nil, nil, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
+			end	]]
+			--particle effect attack NETWORK
+			add_particle(5, nil, nil, 3,nil,nil, 1)
+			for _=1,4 do
+			add_particle(flr(rnd(1.9)+col_n), nil, nil, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
+			end	
 	end
 	if btn(5) and not(sprint_speed < 2) then
 		sprint_speed -= 1
@@ -58,10 +69,10 @@ end
 function _draw()
 	cls(15)	
 	map(0, 0, 0, 0, 128, 128)
-	spr(ani_plr, plr_x, plr_y)
 	for pcl in all(pcls) do
 		pcl:draw()
 	end
+	spr(ani_plr, plr_x, plr_y)	
 end
 -->8
 function plr_col(x, y)
@@ -102,6 +113,16 @@ function add_particle(clr, x, y, r, dx, dy, lifespan)
 			end
 		end})
 end
+-->8
+--test vfx go here
+--[[walk vfx
+for _=1,20 do
+			add_particle(6,(plr_x+6),(plr_y+8),flr(rnd(.9))+1.2,rnd(1)-1,rnd(1)-1)
+		end
+		for _=1,20 do
+			add_particle(5,(plr_x+6),(plr_y+8),flr(rnd(.9))+.9,rnd(1)-1,rnd(1)-1)
+		end
+		]]
 __gfx__
 00010000000010000000000000000007000001b0000000000009000000000000000000000000000000000000003cc00000000000000000000000000000000000
 001c10000011b1100000b000000010c1001111b1000000000000009900000000000000000100001010ccc0013ccccc0000000000000000000000000000000000
