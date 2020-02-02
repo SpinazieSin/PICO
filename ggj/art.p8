@@ -8,6 +8,8 @@ function _init()
 
 --sprite animations init
 		ani_plr=7
+-- particle effect list init
+		pcls = {}
 --adjust colors to new pallete
 	poke(0x5f2e, 1)
 	for i in all({1,3,5,6,11,12,15}) do
@@ -48,16 +50,57 @@ function _update()
 	if ani_plr > 8.9 then
 			ani_plr= 7
 	end
+	for pcl in all(pcls) do
+		pcl:update()
+	end
 end
 
 function _draw()
 	cls(15)	
 	map(0, 0, 0, 0, 128, 128)
-	spr(ani_plr, plr_x, plr_y)	
+	spr(ani_plr, plr_x, plr_y)
+	for pcl in all(pcls) do
+		pcl:draw()
+	end
 end
 -->8
 function plr_col(x, y)
 	return (fget(mget((plr_x+x)/8, (plr_y+y)/8), wall_id))
+end
+-->8
+function add_particle(clr, x, y, r, dx, dy, lifespan)
+	clr = clr or flr(rnd(16))
+	x = x or 63
+	y = y or 63
+	r = r or flr(rnd(2.9))+1
+	dx = dx or rnd(3)-1.5
+	dy = dy or rnd(3)-1.5
+	lifespan = lifespan or rnd(5)+5
+	add(pcls, {
+		x = x,
+		y = y,
+		r = r,
+		dx = dx,
+		dy = dy,
+		life = lifespan,
+		draw = function(self, x, y)
+			x = x or self.x
+			y = y or self.y
+			circfill(x, y, self.r, clr)
+		end,
+		update = function(self)
+			self.x += self.dx
+			self.y += self.dy
+			self.r -= 0.2
+			self.life -= 1
+			if self.life < 0 then
+				self.dx = self.dx/1.5
+				self.dy = self.dy/1.5
+			end
+			if abs(self.dx) < 0.05 and abs(self.dy) < 0.05 then
+				del(pcls, self)
+			end
+		end})
 end
 __gfx__
 00010000000010000000000000000007000001b0000000000009000000000000000000000000000000000000003cc00000000000000000000000000000000000
