@@ -10,6 +10,7 @@ function _init()
  add_unit(40, 40, 1, true)
  add_unit(60, 60, 1, true)
  add_unit(80, 80, 1, true)
+ add_unit(100, 100, 1, true)
  cam_x = 0
  cam_y = 0
  mxo = 0
@@ -182,6 +183,7 @@ function add_unit(x, y, unit_number, isfriendly)
   path_index,
   selected = false,
   right_clicked = false,
+  moving = false,
   goal = {},
   path = {},
   cooldown = 0,
@@ -213,6 +215,13 @@ function add_unit(x, y, unit_number, isfriendly)
 
     -- move/attack command
     if right_press and cdn < 1 then
+     -- Check if unit is right clicked
+     if mid(x, mx, x+size) == mx  and mid(y, my, y+size) == my then
+      self.right_clicked = true
+     else
+      self.right_clicked = false
+     end
+
      if self.selected then
       local gx = snap_mouse(x, mx)
       local gy = snap_mouse(y, my)
@@ -230,9 +239,7 @@ function add_unit(x, y, unit_number, isfriendly)
     -- merge with other unit, rules for merging are in the merge() function
     for other in all(units) do
       dist = abs(other.x - x) + abs(other.y - y)
-      printh("dist: "..dist)
-      -- TODO: check if other is right clicked
-      if dist < 10 and other != self and other.isfriendly then
+      if dist < 12 and other != self and other.isfriendly and other.right_clicked and self.moving then
         merge(self, other)
       end
     end
@@ -247,6 +254,7 @@ function add_unit(x, y, unit_number, isfriendly)
     local y = self.y
     local path = self.path
     if #path > 0 then
+     self.moving = true
      t = path[1]
      if abs(t[1] - x) < self.dx*3 and abs(t[2] - y) < self.dy*3 then
       del(path, path[1])
@@ -259,6 +267,8 @@ function add_unit(x, y, unit_number, isfriendly)
      if not(pget(x, midy + (1 + size/2)*sgn(dx)) == friendlyid) then
       self.y += dy
      end
+    else
+     self.moving = false
     end
 
    -- enemy unit control
