@@ -47,7 +47,7 @@ function _init()
 end
 
 function is_in(a,list)
--- is elemnt a in list b?
+-- is elemnt a in list?
     for elem in all(list) do
         if elem == a then
             return true
@@ -62,7 +62,6 @@ function subset(list, length)
     used_idx = {}
         for k = 1,length do
             idx_rcell = flr(rnd(count(list)))+1
-            printh(not(is_in(idx_rcell, used_idx)))
             if not(is_in(idx_rcell, used_idx)) then
                 add(new_list,list[idx_rcell])
                 add(used_idx,idx_rcell)
@@ -93,9 +92,8 @@ function get_orientation(edge)
     diag_tl = is_in(diag_tl, pfaction_all_cells)
     diag_tr = is_in(diag_tr, pfaction_all_cells)
 
-    if not(bottom) and not(diag_bl) and not(diag_br) then
-
-
+    -- if not(bottom) and not(diag_bl) and not(diag_br) then
+    -- end
 end
 
 
@@ -168,50 +166,45 @@ function update_base(points_to_update, unit_update)
     
     local new_edge = {}
     local used_edges = {}
-    printh(count(base.edges))
+    subset_base_edges = subset(base.edges,2)
+    --printh(count(subset_base_edges))
+    --printh(count(base.edges))
     -- loopable_edges = deepcopy(base.edges)
 
     -- loop over all edges
-    for edge in all(base.edges) do
-        printh("in loop 1")
-        -- useless if statement
-        if unit_update then
-            printh("in unit update")
-            -- loop over cells to be updated
-            for cell in all(points_to_update) do
-                -- match the cell with a known edge
-                if cell[1] == edge[1] and cell[2] == edge[2] then
-                    printh("points match!")
-                    -- set the new cells blue and add them to the edge list
-                    -- where to add
-                    rando = rnd(1)
-                    -- what random piece to get
-                    idx_rcell = flr(rnd(count(edge_cells)))+1
-                    rcell = edge_cells[idx_rcell]
-                    if rando > 0.25 and rando < 0.5 then
-                        if not(is_in(mget(edge[1], edge[2]+1), pfaction_all_cells)) then
-                            mset(edge[1], edge[2]+1, rcell)
-                            add(new_edge, {edge[1], edge[2]+1})
-                        end
-                    elseif rando > 0.5 and rando < 0.75 then
-                        if not(is_in(mget(edge[1]+1, edge[2]), pfaction_all_cells)) then
-                            mset(edge[1]+1, edge[2], rcell)
-                            add(new_edge, {edge[1]+1, edge[2]})
-                        end
-                    elseif rando < 0.25 then
-                        if not(is_in(mget(edge[1]-1, edge[2]), pfaction_all_cells)) then
-                            mset(edge[1]-1, edge[2], rcell)
-                            add(new_edge, {edge[1]-1, edge[2]})
-                        end
-                    elseif rando > 0.75 then
-                        if not(is_in(mget(edge[1], edge[2]-1), pfaction_all_cells)) then
-                            mset(edge[1], edge[2]-1, rcell)
-                            add(new_edge, {edge[1], edge[2]-1})
-                        end
+    for edge in all(subset_base_edges) do
+        -- loop over cells to be updated
+        for cell in all(points_to_update) do
+            -- match the cell with a known edge
+            if cell[1] == edge[1] and cell[2] == edge[2] then
+                -- set the new cells blue and add them to the edge list
+                -- where to add
+                rando = rnd(1)
+                -- what random piece to get
+                idx_rcell = flr(rnd(count(edge_cells)))+1
+                rcell = edge_cells[idx_rcell]
+                if rando > 0.25 and rando < 0.5 then
+                    if not(is_in(mget(edge[1], edge[2]+1), pfaction_all_cells)) then
+                        mset(edge[1], edge[2]+1, rcell)
+                        add(new_edge, {edge[1], edge[2]+1})
                     end
-                break
-
+                elseif rando > 0.5 and rando < 0.75 then
+                    if not(is_in(mget(edge[1]+1, edge[2]), pfaction_all_cells)) then
+                        mset(edge[1]+1, edge[2], rcell)
+                        add(new_edge, {edge[1]+1, edge[2]})
+                    end
+                elseif rando < 0.25 then
+                    if not(is_in(mget(edge[1]-1, edge[2]), pfaction_all_cells)) then
+                        mset(edge[1]-1, edge[2], rcell)
+                        add(new_edge, {edge[1]-1, edge[2]})
+                    end
+                elseif rando > 0.75 then
+                    if not(is_in(mget(edge[1], edge[2]-1), pfaction_all_cells)) then
+                        mset(edge[1], edge[2]-1, rcell)
+                        add(new_edge, {edge[1], edge[2]-1})
+                    end
                 end
+            break            
             end
         end
     end
@@ -224,11 +217,9 @@ function update_base(points_to_update, unit_update)
         add(base.edges, {new_e[1],new_e[2]})
     end
     -- add(base.edges, new_edge)
-    printh(count(base.edges))
+    --printh(count(base.edges))
     for edge in all(base.edges) do
-        printh("checking edge")
         if check_cell_clear(edge) then
-            printh("edge clear!")
             idx_rcell = flr(rnd(count(pfaction_cells)))+1
             mset(edge[1], edge[2], pfaction_cells[idx_rcell])
             -- printh("edge surrounded")
@@ -238,7 +229,7 @@ function update_base(points_to_update, unit_update)
         end
     end
     base.edges = tmplist
-    printh(count(base.edges))
+    --printh(count(base.edges))
     -- stop()
 end
 
@@ -282,19 +273,14 @@ function add_unit(_x,_y)
             points_to_update = {}
             tx = pix2tile(self.x)
             ty = pix2tile(self.y)
-            printh("getting edge cells near unit!")
             for i=tx-1,tx+1 do
                 for j=ty-1,ty+1 do
                     if is_in(mget(i, j), edge_cells) then
                         add(points_to_update, {i,j})
-                        printh("-----------")
-                        printh(i)
-                        printh(j)
                     end
                 end
             end
-            printh("n cells will be passed")
-            printh(count(points_to_update))
+            --printh(count(points_to_update))
             update_base(points_to_update, true)
         end
       end
@@ -316,6 +302,13 @@ function _draw()
     -- if(time() < resumeTime) return
     cls()
     map(0,0,0,0,16,16)
+    points_to_update = subset(base.edges,2)
+
+    if time()%2 == 0 then
+        -- printh(count(base.edges))
+        -- printh(count(points_to_update))
+        update_base(points_to_update, true)
+    end
     -- mset(0,0,2)
     -- if startcounter < 7 then
     --     update_base()
@@ -327,7 +320,6 @@ function _draw()
     print("mem:"..stat(0), 0, 0)
     print("cpu:"..stat(1), 0, 8)
 end
-
 __gfx__
 00010000000010000000000000000007000001b0000000000009000000000000000000000000000000000000003cc00000000000000000000000000000000000
 001c10000011b1100000b000000010c1001111b1000000000000009900000000000000000100001010ccc0013ccccc0000000000000000000000000000000000
@@ -407,3 +399,11 @@ __map__
 0000727363737373727273727372730000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000007273006263006263000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000007273007273000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+__sfx__
+00040000180501c050180501e05000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000500002405000000000001e05000000000001605000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000f0500e050120500000012050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000400001b3001c3001f300243002a3002c3002b7502d7502e750307503025032150351503315033150303502d3502975026750267502c300293002630020300183000c300003000130013300000000000000000
+000e00003325036250362503625032450334003120031200302002d20029200252002220022200222001e2000d2000f2001d2001e2001e2001e2001e200000000000000000000000000000000000000000000000
+000a0000250502500020050217001b0501b0501b0501b0501a0501a05000000274000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0006000001150021500315004150081500b1500615004150021500105000050000000710007100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
