@@ -367,13 +367,14 @@ add(units,{
    local size = self.size
 
    -- friendly unit control
+    -- middle of sprite
+   local midx = x+(size/2)
+   local midy = y+(size/2)
    if self.isfriendly then
+    printh("friendly")
     -- astar cooldown
     local cdn = self.cooldown
 
-    -- middle of sprite
-    local midx = x+(size/2)
-    local midy = y+(size/2)
 
     -- left click selection
     if left_press then
@@ -497,6 +498,58 @@ add(units,{
 
    -- enemy unit control
    else
+    printh("enemy")
+
+    -- enemy above
+    if self.attack_time == 0 then
+     local attack = true
+     local dx = self.dx
+     local dy = self.dy
+     local above_tgt = midy - (1 + size/2)
+     local below_tgt = midy + (1 + size/2)
+     local lefts_tgt = midx - (1 + size/2)
+     local right_tgt = midx + (1 + size/2)
+     local tgt_x = x
+     local tgt_y = y
+     local a_x = 0
+     local a_y = 0
+     if pget(x, above_tgt) == friendlyid then
+      self.attack_y = -2
+      tgt_y = above_tgt
+     elseif pget(x, below_tgt) == friendlyid then
+      self.attack_y = 2
+      tgt_y = below_tgt
+     elseif pget(x, lefts_tgt) == friendlyid then
+      self.attack_x = -2
+      tgt_x = lefts_tgt
+     elseif pget(x, right_tgt) == friendlyid then
+      self.attack_x = 2
+      tgt_x = right_tgt
+     else
+      attack = false
+     end
+
+     if attack then
+      printh("NO ATTACK")
+      self.x += self.attack_x
+      self.y += self.attack_y
+      self.attack_time += 1
+      add(attacks, {x = tgt_x, y = tgt_y, pow = self.pow, friendly = self.isfriendly})
+      add_particle(5, tgt_x, tgt_y, 3,nil,nil, 1)
+      for _=1,4 do
+       add_particle(flr(rnd(1.9)+col_n), tgt_x, tgt_y, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
+      end
+      dx, dy = 0
+     end
+    elseif self.attack_time > 0 then
+     printh("NOTHINS")
+     self.attack_time += 1
+     if self.attack_time > self.attack_speed then
+      self.attack_time = 0
+      self.x -= self.attack_x
+      self.y -= self.attack_y
+     end
+    end
    end
 
    -- unit dies
