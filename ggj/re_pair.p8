@@ -15,16 +15,16 @@ function _init()
  enemies = {}
  add_unit(50, 30, 1, true)
  add_unit(70, 30, 1, true)
- add_unit(10, 30, 2, true)
- add_unit(30, 30, 3, true)
- add_unit(90, 30, 4, true)
- add_unit(110, 30, 5, true)
- add_unit(120, 85, 6, false)
- add_unit(20, 85, 6, false)
- add_unit(40, 85, 7, false)
- add_unit(60, 85, 8, false)
- add_unit(80, 85, 9, false)
- add_unit(100, 85, 10, false)
+--  add_unit(10, 30, 2, true)
+--  add_unit(30, 30, 3, true)
+--  add_unit(90, 30, 4, true)
+--  add_unit(110, 30, 5, true)
+--  add_unit(120, 85, 6, false)
+--  add_unit(20, 85, 6, false)
+--  add_unit(40, 85, 7, false)
+--  add_unit(60, 85, 8, false)
+--  add_unit(80, 85, 9, false)
+--  add_unit(100, 85, 10, false)
  cam_x = 0
  cam_y = 0
  mxo = 0
@@ -100,6 +100,9 @@ function _update()
    friendly_selected = true
   end
  end
+
+ spawn_team(false)
+ spawn_team(true)
 
  -- resolve combat
  while #attacks > 0 do
@@ -222,7 +225,7 @@ function add_unit(x, y, unit_number, isfriendly)
   anim_states = {anim_state(7, 1, 1, 0, 0),
                  anim_state(8, 1, 1, 0, 0)}
   shdw = {x = 3, y = 5, r = 3}
-  anim_speed = 12
+  anim_speed = 9
   attack_speed = 15
   size = 6
   dx = 0.5
@@ -243,7 +246,7 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 3 then
   anim_states = {anim_state(11, 1, 1, 0, -2),
                  anim_state(27, 1, 1, 0, -2)}
-  shdw = {x = 3, y = 5, r = 2}
+  shdw = {x = 4, y = 5, r = 3}
   anim_speed = 12
   attack_speed = 15
   size = 7
@@ -254,7 +257,7 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 4 then
   anim_states = {anim_state(12, 2, 2, 0, 0),
                  anim_state(14, 2, 2, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
+  shdw = {x = 7, y = 14, r = 5}
   anim_speed = 18
   attack_speed = 30
   size = 14
@@ -263,7 +266,7 @@ function add_unit(x, y, unit_number, isfriendly)
   hp = 450
   pow = 190
  elseif unit_number == 5 then
-  anim_states = {anim_state(44, 2, 2, 0, 0),
+  anim_states = {anim_state(44, 2, 2, 0, -2),
                  anim_state(62, 2, 1, 0, 0)}
   shdw = {x = 7, y = 7, r = 4}
   anim_speed = 18
@@ -276,8 +279,8 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 6 then
   anim_states = {anim_state(19, 1, 1, 0, 0),
                  anim_state(20, 1, 1, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
-  anim_speed = 12
+  shdw = {x = 4, y = 8, r = 3}
+  anim_speed = 9
   attack_speed = 15
   size = 6
   dx = 0.5
@@ -289,7 +292,7 @@ function add_unit(x, y, unit_number, isfriendly)
                  anim_state(6, 1, 1, 0, 0),
                  anim_state(21, 1, 1, 0, 0),
                  anim_state(22, 1, 1, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
+  shdw = {x = 3, y = 7, r = 3}
   anim_speed = 12
   attack_speed = 15
   size = 7
@@ -300,7 +303,7 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 8 then
   anim_states = {anim_state(23, 1, 1, 0, 0),
                  anim_state(24, 1, 1, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
+  shdw = {x = 3, y = 7, r = 3}
   anim_speed = 12
   attack_speed = 15
   size = 7
@@ -311,7 +314,7 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 9 then
   anim_states = {anim_state(25, 2, 2, 0, 0),
                  anim_state(39, 2, 2, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
+  shdw = {x = 7, y = 14, r = 5}
   anim_speed = 18
   attack_speed = 20
   size = 14
@@ -322,7 +325,7 @@ function add_unit(x, y, unit_number, isfriendly)
  elseif unit_number == 10 then
   anim_states = {anim_state(35, 2, 2, 0, 0),
                  anim_state(37, 2, 2, 0, 0)}
-  shdw = {x = 7, y = 7, r = 4}
+  shdw = {x = 8, y = 13, r = 5}
   anim_speed = 18
   attack_speed = 30
   size = 14
@@ -367,13 +370,14 @@ add(units,{
    local size = self.size
 
    -- friendly unit control
+    -- middle of sprite
+   local midx = x+(size/2)
+   local midy = y+(size/2)
    if self.isfriendly then
+    printh("friendly")
     -- astar cooldown
     local cdn = self.cooldown
 
-    -- middle of sprite
-    local midx = x+(size/2)
-    local midy = y+(size/2)
 
     -- left click selection
     if left_press then
@@ -497,12 +501,71 @@ add(units,{
 
    -- enemy unit control
    else
+
+    -- enemy above
+    if self.attack_time == 0 then
+     local attack = true
+     local dx = self.dx
+     local dy = self.dy
+     local above_tgt = midy - (1 + size/2)
+     local below_tgt = midy + (1 + size/2)
+     local lefts_tgt = midx - (1 + size/2)
+     local right_tgt = midx + (1 + size/2)
+     local tgt_x = x
+     local tgt_y = y
+     local a_x = 0
+     local a_y = 0
+
+     if pget(x, above_tgt) == friendlyid then
+      self.attack_y = -2
+      tgt_y = above_tgt
+     elseif pget(x, below_tgt) == friendlyid then
+      self.attack_y = 2
+      tgt_y = below_tgt
+     elseif pget(x, lefts_tgt) == friendlyid then
+      self.attack_x = -2
+      tgt_x = lefts_tgt
+     elseif pget(x, right_tgt) == friendlyid then
+      self.attack_x = 2
+      tgt_x = right_tgt
+     else
+      attack = false
+     end
+
+     if attack then
+      self.x += self.attack_x
+      self.y += self.attack_y
+      self.attack_time += 1
+      add(attacks, {x = tgt_x, y = tgt_y, pow = self.pow, friendly = self.isfriendly})
+      add_particle(5, tgt_x, tgt_y, 3,nil,nil, 1)
+      for _=1,4 do
+       add_particle(flr(rnd(1.9)+col_n), tgt_x, tgt_y, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
+      end
+      dx, dy = 0
+     end
+    elseif self.attack_time > 0 then
+     self.attack_time += 1
+     if self.attack_time > self.attack_speed then
+      self.attack_time = 0
+      self.x -= self.attack_x
+      self.y -= self.attack_y
+     end
+    end
    end
 
    -- unit dies
    if self.hp < 0 then
     del(units, self)
-    printh("dead particles")
+    local middle = size/2
+    for _=1,10 do
+     add_particle(0, self.x + middle, self.y + middle, flr(rnd(5.9)+1), rnd(2.3)-1, rnd(1.9)+1, rnd(1.2)+.2)
+    end
+    for _=1,20 do
+     add_particle(7, self.x + middle, self.y + middle, flr(rnd(1.9)+1), 0, nil, rnd(1.9)+1.5)
+    end
+    for _=1,20 do
+     add_particle(7, self.x + middle, self.y + middle - 2, flr(rnd(1.9)+1), nil, 0, rnd(1.9)+1.5)
+    end
    end
 
    -- unit base expansion
@@ -545,6 +608,9 @@ add(units,{
   shadow = function(self)
    local shdw = self.shdw
    circfill(self.x + shdw.x, self.y + shdw.y , shdw.r, 0)
+   if self.selected then
+    circ(self.x + shdw.x, self.y + shdw.y , shdw.r, 11)
+   end
   end,
 
   draw = function(self)
@@ -560,9 +626,6 @@ add(units,{
 
    local anim = self.anim_states[self.anim_index]
    spr(anim.spr_n, self.x + anim.x_offset, self.y + anim.y_offset, anim.x_width, anim.y_width, self.left)
-   if self.selected then
-    spr(16, self.x, self.y)
-   end
   end})
 end
 
@@ -925,6 +988,40 @@ function add_particle(clr, x, y, r, dx, dy, lifespan)
 			end
 		end})
 end
+
+
+function spawn_team(enemies)
+ printh(enemies)
+ local upper_y
+ local lower_y
+ local left_x
+ local right_x
+ if enemies then
+  upper_y = 70
+  lower_y = 50
+  left_x = 10
+  right_x = 100
+ else
+  upper_y = 30
+  lower_y = 10
+  left_x = 10
+  right_x = 100
+ end
+ -- random location
+ random_x = flr(rnd(right_x - left_x) + left_x)
+ random_y = flr(rnd(upper_y - lower_y) + lower_y)
+ -- random enemy type
+ if enemies then
+  random_type = flr(rnd(5)) + 6
+ else
+  random_type = flr(rnd(5)) + 1
+ end
+ -- random check to control spawn rate
+ if rnd(1000) > 999 then
+  add_unit(random_x, random_y, random_type, not(enemies))
+ end
+end
+
 __gfx__
 00010000000010000000000000000007000001b0000000000009000000000000000000000000000000000000003cc00000000000000000000000000000000000
 001c10000011b1100000b000000010c1001111b10000000000000099000ccc00000000000100001010ccc0013ccccc0000000000000000000000000000000000
