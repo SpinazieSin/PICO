@@ -46,6 +46,14 @@ function _update()
  mx = stat(32)
  my = stat(33)
  mp = stat(34)
+ 
+ if btn(4) then
+ for _=1,2 do
+ add_particle(flr(rnd(2.9)+4), rnd(3.9)+63, rnd(3.9)+63, flr(rnd(.9)+.2),0,rnd(2)-1,5, rnd(30)+10)
+ add_particle(flr(rnd(1.9)+1), rnd(3.9)+63, rnd(3.9)+63, flr(rnd(.9)+.2),0,rnd(2)-1,5, rnd(30)+10)
+ add_particle(0, rnd(3.9)+63, rnd(3.9)+63, flr(rnd(.9)+.5),0,rnd(2)-1,5, rnd(30)+10)
+ end
+ end
 
  move_camera()
 
@@ -383,10 +391,12 @@ add(units,{
      end
 
      if self.selected then
-      if not(fget(mget(mx/8, my/8), wallid)) then 
+      if not(fget(mget(mx/8, my/8), wallid)) and mx > 0 and my > 0 then
        local gx = snap_mouse(x, mx)
        local gy = snap_mouse(y, my)
-       local path = astar({x, y}, {gx, gy}, self.size)
+       if not(gx == x and gy == y) then 
+        local path = astar({x, y}, {gx, gy}, self.size)
+       end
        if path == nil then
         self.path = {}
        else
@@ -603,27 +613,21 @@ end
 function merge(unit, other)
  new_type = 0
  if unit.unit_number == 1 and other.unit_number == 1 then
-   play_merge_sfx(unit.unit_number)
   -- rule 1: merge 1 and 1 into 2 or 3
   new_type = flr(rnd(2)) + 2
  elseif unit.unit_number == 2 and other.unit_number == 2 then
-   play_merge_sfx(unit.unit_number)
   -- rule 2: merge 2 and 2 into 4
   new_type = 4
  elseif unit.unit_number == 3 and other.unit_number == 3 then
-   play_merge_sfx(unit.unit_number)
   -- rule 3: merge 3 and 3 into 5
   new_type = 5
  elseif unit.unit_number == 6 and other.unit_number == 6 then
-   play_merge_sfx(unit.unit_number)
   -- rule 4: merge 6 and 6 into 7 or 8
   new_type = flr(rnd(2)) + 7
  elseif unit.unit_number == 7 and other.unit_number == 7 then
-   play_merge_sfx(unit.unit_number)
   -- rule 5: merge 7 and 7 into 10
   new_type = 10
  elseif unit.unit_number == 8 and other.unit_number == 8 then
-   play_merge_sfx(unit.unit_number)
   -- rule 6: merge 8 and 8 into 9
   new_type = 9
  end
@@ -631,6 +635,19 @@ function merge(unit, other)
   del(units, unit)
   del(units, other)
   add_unit(unit.x, unit.y, new_type, true)
+  play_merge_sfx(unit.unit_number) 
+  -- particle effect
+
+  local middle = unit.size/2
+  local midx = unit.x+middle
+  local midy = unit.y+middle
+
+  for _=1,20 do
+   add_particle(flr(rnd(1.9)+col_a), midx, midy, flr(rnd(6.9)+1), rnd(2)-1, rnd(2)-1, rnd(1.3)+1)
+  end 
+  for _=1,20 do
+   add_particle(14, midx, midy, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1.5)
+  end 
  end
 end
 -->8
