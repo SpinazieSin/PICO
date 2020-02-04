@@ -21,24 +21,33 @@ function _init()
 	edge_pos_x = 63
 	edge_pos_y = 63
 	wall_id = 1
+	gt = 0 
 end
 
 function _update()
 --camera controls
 	plr_dx = 0
 	plr_dy = 0
+	gt += 1
 	
-	if btn(4) then
+	if rnd(1) < 0.1 then
+		for _=1,3 do
+		add_particle(7, -100, rnd(128), flr(rnd(20)+5), 1,0,500)
+		end
+	end
+
+	if gt%30 == 0 then
 			wall_id = 0	
-			--[[particle effect attack ANIMAL BASE 13,12,14
-			add_particle(1, nil, nil, 3,nil,nil, 1)
+			gt = 0
+			--[[particle effect attack ANIMAL BASE 13,12,14]]
+			add_particle(1, 10, nil, 3,nil,nil, 1)
 			for _=1,4 do
-			add_particle(flr(rnd(1.9)+col_a), nil, nil, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
+			add_particle(flr(rnd(1.9)+col_a), 10, nil, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
 			end	
-			--particle effect attack NETWORK
-			add_particle(5, nil, nil, 3,nil,nil, 1) 4,5,9,10
+			--particle effect attack NETWORK 4,5,9,10
+			add_particle(5, 25, nil, 3,nil,nil, 1) 
 			for _=1,4 do
-			add_particle(flr(rnd(1.9)+col_n), nil, nil, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
+			add_particle(flr(rnd(1.9)+col_n), 25, nil, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
 			end				
 			--particle for terrain growth/reduction edges
 			for _=1,2 do
@@ -48,25 +57,38 @@ function _update()
 			end		
 			--particle for merging units, for network use col_b and for the second particle use color 10			
 			for _=1,20 do
-			add_particle(flr(rnd(1.9)+col_a), nil, nil, flr(rnd(6.9)+1), rnd(2)-1, rnd(2)-1, rnd(1.3)+1)
+			add_particle(flr(rnd(1.9)+col_a), 40, nil, flr(rnd(6.9)+1), rnd(2)-1, rnd(2)-1, rnd(1.3)+1)
 			end	
 			for _=1,20 do
-			add_particle(14, nil, nil, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1.5)
+			add_particle(14, 40, nil, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1.5)
 			end	
-			]]
+			for _=1,20 do
+			add_particle(flr(rnd(1.9)+col_n), 53, nil, flr(rnd(6.9)+1), rnd(2)-1, rnd(2)-1, rnd(1.3)+1)
+			end	
+			for _=1,20 do
+			add_particle(10, 53, nil, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1.5)
+			end	
 			--particle effect for death
-			--particle for merging units, for network use col_b and for the second particle use color 10
-			
-			for _=1,10 do
-			add_particle(0, nil, edge_pos_y -6, flr(rnd(5.9)+1), rnd(2.3)-1, rnd(1.9)+1, rnd(1.2)+.2)
+			for _=1,8 do
+			add_particle(0, 77, edge_pos_y -8, flr(rnd(5.9)+1), rnd(2.3)-1, rnd(1.9)+1, rnd(2.7)+.2)
+			add_particle(9, 77, nil, nil, nil, nil, rnd(2.7)+.2)
 			end	
-			for _=1,20 do
-			add_particle(7, nil, nil, flr(rnd(1.9)+1), 0, nil, rnd(1.9)+1.5)
+			for _=1,12 do
+			add_particle(7, 77, nil, flr(rnd(1.9)+1), 0, nil, rnd(4.9)+1.5)
 			end		
-			for _=1,20 do
-			add_particle(7, nil, edge_pos_y -2, flr(rnd(1.9)+1), nil, 0, rnd(1.9)+1.5)
+			for _=1,10 do
+			add_particle(7, 77, edge_pos_y -2, flr(rnd(1.9)+1), nil, 0, rnd(3.9)+1.5)
 			end		
-
+			for _=1,8 do
+			add_particle(0, 95, edge_pos_y -8, flr(rnd(5.9)+1), rnd(2.3)-1, rnd(1.9)+1, rnd(2.7)+.2)
+			add_particle(12, 95, nil, nil, nil, nil, rnd(2.7)+.2)
+			end	
+			for _=1,12 do
+			add_particle(7, 95, nil, flr(rnd(1.9)+1), 0, nil, rnd(4.9)+1.5)
+			end		
+			for _=1,10 do
+			add_particle(7, 95, edge_pos_y -2, flr(rnd(1.9)+1), nil, 0, rnd(3.9)+1.5)
+			end	
 	end
 	if btn(5) and not(sprint_speed < 2) then
 		sprint_speed -= 1
@@ -102,6 +124,8 @@ function _draw()
 		pcl:draw()
 	end
 	spr(ani_plr, plr_x, plr_y)	
+	print("mem:"..stat(0),4,4)
+	print("cpu:"..stat(1),4,10)
 end
 -->8
 function plr_col(x, y)
@@ -131,7 +155,7 @@ function add_particle(clr, x, y, r, dx, dy, lifespan)
 		update = function(self)
 			self.x += self.dx
 			self.y += self.dy
-			self.r -= 0.2
+			self.r -= 0.0--2
 			self.life -= 1
 			if self.life < 0 then
 				self.dx = self.dx/1.5
@@ -154,13 +178,13 @@ for _=1,20 do
 		]]
 __gfx__
 11100000000010000000000000000007000001b0000000000009000000000000000000000000000000000000003cc00000000000000000000000000000000000
-1dd110000011b1100000b000000010c1001111b1000000000000009900000000000000000100001010ccc0013ccccc0000000000000000000000000000000000
-177dd11000100010000101000011b0c101bbbbb1009000000000009a00000000000000000c0cc0c00c7dd7c003cc12c0000ee000000ee0000000000000000000
-17777d1001b070b10010701001bbbcc101bccc11000a099090aa0000000ccc00000000000c7dd7000ce22e0000cdd2000000e000000e00000000000000000000
-177777d1001000100b07070b1bbccc1001b77c100988aa900aaaaa0000cc1c20000ccc000ce22e0000cccc000c0000c0000ee00ccccce0000000000000000000
-077777710011b110011111111b0c110011bbbc100a8a8aa0a88faa9000ceec2000cc1c200cccccc000c00c00cc0000cc000eecccccccc000000eeee000ee0000
-0177771000001000000010001b0100001ccccc1099888a9998a899900ccccc0000ceec20cc0000cc0cc00cc0c100001c000eccccc1cccc0000e0eeeccccce000
-001111000000000000000000700000000c111100099a99990888990000c000000ccccc00110000110110011010000001000cccc11ccc2c0000e00cccc1ccc000
+1dd110000011b1100000b000000010c1001111b10000000000000099000ccc00000000000100001010ccc0013ccccc0000000000000000000000000000000000
+177dd11000100010000101000011b0c101bbbbb1009000000000009a00cc1c20000ccc000c0cc0c00c7dd7c003cc12c0000ee000000ee0000000000000000000
+17777d1001b070b10010701001bbbcc101bccc11000a099090aa000000ceec2000cc1c200c7dd7000ce22e0000cdd2000000e000000e00000000000000000000
+177777d1001000100b07070b1bbccc1001b77c100988aa900aaaaa000ccccc0000ceec200ce22e0000cccc000c0000c0000ee00ccccce0000000000000000000
+077777710011b110011111111b0c110011bbbc100a8a8aa0a88faa9000c000000ccccc000cccccc000c00c00cc0000cc000eecccccccc000000eeee000ee0000
+0177771000001000000010001b0100001ccccc1099888a9998a899900000000000000000cc0000cc0cc00cc0c100001c000eccccc1cccc0000e0eeeccccce000
+001111000000000000000000700000000c111100099a9999088899000000000000000000110000110110011010000001000cccc11ccc2c0000e00cccc1ccc000
 00000011111111000000000000000000000000000000000000a000000000000000000000000000999900000001000010000eccccccc222c00000cccccccccc00
 000000111cc11100000000000000000000000000000a0000088faa00000000000008880000009999a99900001c0000c100cceeccccccccc0000cccc11ccc2c00
 00000011111111000000000000000000000000000988aa0008a899a00888000000005880000999999a990000cc0000cc00cceeccdddcccc0000cccccccc222c0
