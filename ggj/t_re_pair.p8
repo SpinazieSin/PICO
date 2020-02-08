@@ -13,18 +13,8 @@ function _init()
  hold = false
  units = {}
  enemies = {}
- add_unit(50, 30, 1, true)
- add_unit(70, 30, 1, true)
---  add_unit(10, 30, 2, true)
---  add_unit(30, 30, 3, true)
---  add_unit(90, 30, 4, true)
---  add_unit(110, 30, 5, true)
---  add_unit(120, 85, 6, false)
---  add_unit(20, 85, 6, false)
---  add_unit(40, 85, 7, false)
---  add_unit(60, 85, 8, false)
---  add_unit(80, 85, 9, false)
---  add_unit(100, 85, 10, false)
+ -- add_unit(50, 30, 1, true)
+ -- add_unit(70, 30, 1, true)
  cam_x = 0
  cam_y = 0
  mxo = 0
@@ -37,34 +27,56 @@ function _init()
  -- init color vars for different races
  col_a = 12
  col_n = 8
- -- base expansion code=
+ 
+ -- base expansion code
+ -- todo
+
+ gamestate = 0
+ for _=1,4 do
+		for i=1,5 do
+			spawn_unit(false, i)
+			spawn_unit(true, i+5)
+		end
+	end
 end
 
 function _update()
- -- cls for collision layer
- cls()
+ -- mouse position and press
  mx = stat(32)
  my = stat(33)
  mp = stat(34)
- 
- if btn(4) then
- for _=1,2 do
- add_particle(flr(rnd(2.9)+4), rnd(3.9)+63, rnd(3.9)+63, flr(rnd(.9)+.2),0,rnd(2)-1,5, rnd(30)+10)
- add_particle(flr(rnd(1.9)+1), rnd(3.9)+63, rnd(3.9)+63, flr(rnd(.9)+.2),0,rnd(2)-1,5, rnd(30)+10)
- add_particle(0, rnd(3.9)+63, rnd(3.9)+63, flr(rnd(.9)+.5),0,rnd(2)-1,5, rnd(30)+10)
- end
- end
 
- move_camera()
-
+ -- mouse butten presses part 1
  if mp == 2 then
   right_press = true
  end
 
+ if gamestate == 0 then
+  update_start()
+ else
+  -- cls for collision layer
+  cls()
+  -- camera
+  move_camera()
+  update_game()
+ end
+
+ -- mouse butten presses part 2
+ if mp == 1 then
+  left_press = true
+ else
+  left_press = false
+ end
+ right_press = false
+end
+
+function update_game()
+ -- draw collisions
  for unit in all(units) do
   unit:colbox()
  end
 
+ -- update all units
  friendly_selected = false
  for unit in all(units) do
   unit:update()
@@ -73,8 +85,13 @@ function _update()
   end
  end
 
- spawn_team(false, 995)
- spawn_team(true, 996)
+ -- random spawner
+ if 996 < rnd(1000) or btn(5) then
+   spawn_unit(false, flr(rnd(3)+f_idstart))
+ end
+ if 995 < rnd(1000) or btn(5) then
+   spawn_unit(true, flr(rnd(5)+e_idstart))
+ end
 
  -- resolve combat
  while #attacks > 0 do
@@ -84,15 +101,21 @@ function _update()
   del(attacks, attacks[1])
  end
 
+ -- update particles
  for pcl in all(pcls) do
   pcl:update()
  end
+
 end
 
 function _draw()
  -- cls for drawing
- cls(0)
- map()
+ cls()
+ if gamestate == 0 then
+  draw_start()
+ else
+  map()
+ end
 
  -- draw shadows
  for unit in all(units) do
@@ -109,16 +132,15 @@ function _draw()
   pcl:draw()
  end
 
- if mp == 1 then
-  left_press = true
- else
-  left_press = false
- end
-
- right_press = false
+ -- colbox draw
+ if btn(4) then
+  for unit in all(units) do
+   unit:colbox()
+  end
+ end 
 
  -- boxdrag
- if left_press then
+ if left_press and not(gamestate == 0) then
   if not(hold) then
    holdx = mx
    holdy = my
@@ -130,10 +152,11 @@ function _draw()
   hold = false
  end
 
+ -- draw mouse
  spr(0, mx, my)
--- print("mem:"..stat(0), cam_x, cam_y, 7)
--- print("cpu:"..stat(1), cam_x, cam_y+8, 7)
--- print("cpu2:"..stat(2), cam_x, cam_y+16, 7)
+ -- print("mem:"..stat(0), cam_x, cam_y, 7)
+ -- print("cpu:"..stat(1), cam_x, cam_y+8, 7)
+ -- print("cpu2:"..stat(2), cam_x, cam_y+16, 7)
 end
 
 function move_camera()
@@ -176,17 +199,19 @@ function move_camera()
  if cam_dy < 0 and cam_y > 0 then 
   cam_y += cam_dy
  end
- camera(cam_x, cam_y)
+ -- camera(cam_x, cam_y)
  mx = mx + cam_x
  my = my + cam_y
 end
 
 -->8
 
+-- table for animations
 function anim_state(a, b, c, d, e, f)
  return { spr_n = a, x_width = b, y_width = c, x_offset = d, y_offset = e }
 end
 
+-- the function to end all functions (friendly/hostile unit class)
 function add_unit(x, y, unit_number, isfriendly)
  -- global traits
  local x = x or 63
@@ -204,9 +229,9 @@ function add_unit(x, y, unit_number, isfriendly)
  local attack_speed
 
  if isfriendly then
-  id = 1
+  id = friendlyid
  else
-  id = 2
+  id = enemyid
  end
 
  -- unit traits
@@ -357,11 +382,11 @@ add(units,{
    local x = flr(self.x)
    local y = flr(self.y)
    local size = self.size
+   local middle = size/2
+   local midx = x+middle
+   local midy = y+middle
 
-   -- friendly unit control
-    -- middle of sprite
-   local midx = x+(size/2)
-   local midy = y+(size/2)
+   -- friendly unit control starts here
    if self.isfriendly then
     -- astar cooldown
     local cdn = self.cooldown
@@ -439,10 +464,11 @@ add(units,{
      local dx = sgn(tx)*self.dx
      local dy = sgn(ty)*self.dy
 
-     local xtarget = midx + (1 + size/2)*sgn(dx)
-     local ytarget = midy + (1 + size/2)*sgn(dy)
-     local xid = pget(xtarget, y)
-     local yid = pget(x, ytarget)
+     local xtarget = midx + (1 + middle)*sgn(dx)
+     local ytarget = midy + (1 + middle)*sgn(dy)
+     local xid = pget(xtarget, y+middle)
+     local yid = pget(x+middle, ytarget)
+
      if xid == 0 then
       if abs(tx) > self.dx then
        self.x += dx
@@ -460,22 +486,22 @@ add(units,{
      end
 
      if xid == enemyid and self.attack_time == 0 then
-      self.attack_x = 2*sgn(dx)
+      self.attack_x = -2*sgn(dx)
       self.x += self.attack_x
       self.attack_time += 1
-      add(attacks, {x = xtarget, y = y, pow = self.pow, friendly = self.isfriendly})
-      add_particle(5, xtarget, y, 3,nil,nil, 1)
+      add(attacks, {x = xtarget, y = y+middle, pow = self.pow, friendly = self.isfriendly})
+      dx, dy = 0
+      add_particle(5, xtarget, y+middle, 3,nil,nil, 1)
       for _=1,4 do
        add_particle(flr(rnd(1.9)+col_n), xtarget, y, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
       end
-      dx, dy = 0
      elseif yid == enemyid and self.attack_time == 0 then
-      self.attack_y = 2*sgn(dy)
+      self.attack_y = -2*sgn(dy)
       self.y += self.attack_y
       self.attack_time += 1
-      add(attacks, {x = x, y = ytarget, pow = self.pow, friendly = self.isfriendly})
+      add(attacks, {x = x+middle, y = ytarget, pow = self.pow, friendly = self.isfriendly})
       dx, dy = 0
-      add_particle(5, x, ytarget, 3,nil,nil, 1)
+      add_particle(5, x+middle, ytarget, 3,nil,nil, 1)
       for _=1,4 do
        add_particle(flr(rnd(1.9)+col_n), x, ytarget, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
       end
@@ -493,7 +519,7 @@ add(units,{
      end
     end
 
-   -- enemy unit control
+   -- enemy unit control starts here
    else
 
     -- enemy above
@@ -501,25 +527,26 @@ add(units,{
      local attack = true
      local dx = self.dx
      local dy = self.dy
-     local above_tgt = midy - (1 + size/2)
-     local below_tgt = midy + (1 + size/2)
-     local lefts_tgt = midx - (1 + size/2)
-     local right_tgt = midx + (1 + size/2)
+     local above_tgt = y-1
+     local below_tgt = y+size+1
+     local lefts_tgt = x-1
+     local right_tgt = x+size+1
      local tgt_x = x
      local tgt_y = y
      local a_x = 0
      local a_y = 0
 
-     if pget(x, above_tgt) == friendlyid then
+     if pget(right_tgt, below_tgt) == friendlyid then
       self.attack_y = -2
+      tgt_x = right_tgt
       tgt_y = above_tgt
      elseif pget(x, below_tgt) == friendlyid then
       self.attack_y = 2
       tgt_y = below_tgt
-     elseif pget(x, lefts_tgt) == friendlyid then
+     elseif pget(lefts_tgt, y) == friendlyid then
       self.attack_x = -2
       tgt_x = lefts_tgt
-     elseif pget(x, right_tgt) == friendlyid then
+     elseif pget(right_tgt, y) == friendlyid then
       self.attack_x = 2
       tgt_x = right_tgt
      else
@@ -550,16 +577,13 @@ add(units,{
    -- unit dies
    if self.hp < 0 then
     del(units, self)
-    local middle = size/2
     play_death_sound_effect()
     for _=1,8 do
-     add_particle(0, self.x + middle, self.y + middle, flr(rnd(5.9)+1), rnd(2.3)-1, rnd(1.9)+1, rnd(1.2)+.2)
+     add_particle(0, midx, midy, flr(rnd(5.9)+1), rnd(2.3)-1, rnd(1.9)+1, rnd(1.2)+.2)
     end
     for _=1,15 do
-     add_particle(7, self.x + middle, self.y + middle, flr(rnd(1.9)+1), 0, nil, rnd(1.9)+1.5)
-    end
-    for _=1,15 do
-     add_particle(7, self.x + middle, self.y + middle - 2, flr(rnd(1.9)+1), nil, 0, rnd(1.9)+1.5)
+     add_particle(7, midx, midy, flr(rnd(1.9)+1), 0, nil, rnd(1.9)+1.5)
+     add_particle(7, midx, midy - 2, flr(rnd(1.9)+1), nil, 0, rnd(1.9)+1.5)
     end
    end
   end,
@@ -644,8 +668,6 @@ function merge(unit, other)
 
   for _=1,20 do
    add_particle(flr(rnd(1.9)+col_a), midx, midy, flr(rnd(6.9)+1), rnd(2)-1, rnd(2)-1, rnd(1.3)+1)
-  end 
-  for _=1,20 do
    add_particle(14, midx, midy, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1.5)
   end 
  end
@@ -818,16 +840,16 @@ end
 
 function subset(list, length)
 -- take subset of list, length needs to be less than the length of the list
-    new_list = {}
-    used_idx = {}
-        for k = 1,length do
-            idx_rcell = flr(rnd(count(list)))+1
-            if not(is_in(idx_rcell, used_idx)) then
-                add(new_list,list[idx_rcell])
-                add(used_idx,idx_rcell)
-            end
-        end
-    return new_list
+ new_list = {}
+ used_idx = {}
+  for k = 1,length do
+   idx_rcell = flr(rnd(count(list)))+1
+   if not(is_in(idx_rcell, used_idx)) then
+    add(new_list,list[idx_rcell])
+    add(used_idx,idx_rcell)
+   end
+  end
+ return new_list
 end
 
 -->8
@@ -893,37 +915,58 @@ function play_death_sound_effect()
  sfx(13)
 end
 
-function spawn_team(enemies, rate)
+function spawn_unit(enemies, number)
  local upper_y
  local lower_y
  local left_x
  local right_x
  if enemies then
-  upper_y = 70
-  lower_y = 50
+  upper_y = 100
+  lower_y = 70
   left_x = 10
   right_x = 100
  else
-  upper_y = 30
+  upper_y = 40
   lower_y = 10
   left_x = 10
   right_x = 100
  end
  -- random location
- random_x = flr(rnd(right_x - left_x) + left_x)
- random_y = flr(rnd(upper_y - lower_y) + lower_y)
- -- random enemy type
- if enemies then
-  random_type = flr(rnd(5)) + 6
- else
-  random_type = flr(rnd(3)) + 1
- end
- -- random check to control spawn rate
- if rnd(1000) > rate then
-  add_unit(random_x, random_y, random_type, not(enemies))
- end
+ random_x = rnd(right_x - left_x) + left_x
+ random_y = rnd(upper_y - lower_y) + lower_y
+ add_unit(random_x, random_y, number, not(enemies))
 end
 
+-->8
+function update_start()
+	if left_press and my < 63 then
+		gamestate = 1
+	 friendlyid = 1
+	 enemyid = 2
+	 f_idstart = 1
+	 e_idstart = 6
+	 units = {}
+	elseif left_press then
+		gamestate = 1
+ 	friendlyid = 2
+ 	enemyid = 1
+ 	f_idstart = 6
+ 	e_idstart = 1
+ 	units = {}
+	end
+end
+
+function draw_start()
+ local c1 = 13
+ local c2 = 5
+	if my < 63 then
+		c1 = 12
+	else
+		c2 = 9
+	end
+	rectfill(0,0, 127, 63, c1)
+	rectfill(0,63, 127, 127, c2)
+end
 __gfx__
 11100000000010000000000000000007000001b0000000000009000000000000000000000000000000000000003cc00000000000000000000000000000000000
 1dd110000011b1100000b000000010c1001111b10000000000000099000ccc00000000000100001010ccc0013ccccc0000000000000000000000000000000000
