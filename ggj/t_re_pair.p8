@@ -410,6 +410,7 @@ add(units,{
     end
 
     -- move/attack command
+    local goal_buffer = self.goal_buffer
     if right_press and cdn < 1 then
      -- check if unit is right clicked
      if mid(x, mx, x+size) == mx  and mid(y, my, y+size) == my then
@@ -419,20 +420,18 @@ add(units,{
      end
 
      if self.selected then
-      local goal_buffer = self.goal_buffer
       if (not(fget(mget(mx/8, my/8), wallid)) and mx > 0 and my > 0 and mx < 256 and my < 256) then
        local gx = snap_mouse(x, mx)
        local gy = snap_mouse(y, my)
        
-       -- if stat(1) > 0.9 then
-       --  self.goal_buffer = {gx, gy}
-       -- elseif not(goal_buffer == nil) then
-       --  gx, gy = goal_buffer[1], goal_buffer[2]
-       --  self.goal_buffer = nil
-       -- end
-       
-       if not(gx == x and gy == y) then 
-        local path = astar({x, y}, {gx, gy}, size)
+       local path
+       if not(gx == x and gy == y) then
+        self.goal_buffer = nil
+        if stat(1) > 0.65 then
+         self.goal_buffer = {gx, gy}
+        else 
+         path = astar({x, y}, {gx, gy}, size)
+        end
        end
        if path == nil then
         self.path = {}
@@ -443,6 +442,17 @@ add(units,{
       end
      end
      self.cooldown = 15
+    elseif not(goal_buffer == nil) and stat(1) < 0.65 then
+     local gx = goal_buffer[1]
+     local gy = goal_buffer[2]
+     local path = astar({x, y}, {gx, gy}, size)
+     if path == nil then
+      self.path = {}
+     else
+      self.path = path
+      self.path_index = 1
+     end
+     self.goal_buffer = nil
     end
 
     -- merge with other unit, rules for merging are in the merge() function
@@ -462,7 +472,7 @@ add(units,{
     if #path > 0 then
      self.moving = true
      t = path[1]
-     if abs(t[1] - x) < self.dx*3 and abs(t[2] - y) < self.dy*3 then
+     if abs(t[1] - x) < self.dx*1.5 and abs(t[2] - y) < self.dy*1.5 then
       del(path, path[1])
      end
      local tx = t[1] - x
@@ -530,6 +540,7 @@ add(units,{
    else
 
     -- enemy above
+    goal_buffer = self.goal_buffer
     if self.attack_time == 0 then
      local attack = true
      local dx = self.dx
@@ -570,8 +581,19 @@ add(units,{
        add_particle(flr(rnd(1.9)+col_n), tgt_x, tgt_y, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
       end
       dx, dy = 0
+     elseif not(goal_buffer == nil) and stat(1) < 0.65 then
+      local gx = goal_buffer[1]
+      local gy = goal_buffer[2]
+      local path = astar({x, y}, {gx, gy}, size)
+      if path == nil then
+       self.path = {}
+      else
+       self.path = path
+       self.path_index = 1
+      end
+      self.goal_buffer = nil
      elseif cdn == 0 then
-      self.cooldown = 90
+      self.cooldown = 90+flr(rnd(100))
       local gx
       local gy
       for unit in all(units) do
@@ -590,8 +612,13 @@ add(units,{
         end
        end
       end
+      local path
       if not(gx == x and gy == y) and not(gx == nil or gy == nil) then 
-       local path = astar({x, y}, {gx, gy}, size)
+       if stat(1) > 0.65 then
+        self.goal_buffer = {gx, gy}
+       else
+        path = astar({x, y}, {gx, gy}, size)
+       end
       end
       if path == nil then
        self.path = {}
