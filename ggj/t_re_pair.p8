@@ -180,26 +180,26 @@ function move_camera()
   if my > 116 and cam_y < 128 then
    cam_dy = 1
   end
-  if mx < 18 and cam_x > 0 then
+  if mx < 18 and cam_x > -63 then
    cam_dx = -1
   end
-  if my < 18 and cam_y > 0 then
+  if my < 18 and cam_y > -63 then
    cam_dy = -1
   end
  end
  if cam_dx > 0 and cam_x < 128 then 
   cam_x += cam_dx
  end
- if cam_dx < 0 and cam_x > 0 then 
+ if cam_dx < 0 and cam_x > -63 then 
   cam_x += cam_dx
  end
  if cam_dy > 0 and cam_y < 128 then 
   cam_y += cam_dy
  end
- if cam_dy < 0 and cam_y > 0 then 
+ if cam_dy < 0 and cam_y > -63 then 
   cam_y += cam_dy
  end
- -- camera(cam_x, cam_y)
+ camera(cam_x, cam_y)
  mx = mx + cam_x
  my = my + cam_y
 end
@@ -364,6 +364,7 @@ add(units,{
   shdw = shdw,
   unit_number = unit_number,
   attack_speed = attack_speed,
+  goal_buffer = nil,
   anim_time = 0,
   anim_index = 1,
   path_index,
@@ -372,7 +373,7 @@ add(units,{
   moving = false,
   goal = {},
   path = {},
-  cooldown = 0,
+  cooldown = flr(rnd(15)),
   attack_time = 0,
   attack_x = 0,
   attack_y = 0,
@@ -386,12 +387,14 @@ add(units,{
    local midx = x+middle
    local midy = y+middle
 
+   -- update cooldown
+   local cdn = self.cooldown
+   if cdn > 0 then
+    self.cooldown -= 1
+   end
+
    -- friendly unit control starts here
    if self.isfriendly then
-    -- astar cooldown
-    local cdn = self.cooldown
-
-
     -- left click selection
     if left_press then
      if mid(holdx, midx, mx) == midx and mid(holdy, midy, my) == midy then
@@ -416,11 +419,20 @@ add(units,{
      end
 
      if self.selected then
-      if not(fget(mget(mx/8, my/8), wallid)) and mx > 0 and my > 0 and mx < 256 and my < 256 then
+      local goal_buffer = self.goal_buffer
+      if (not(fget(mget(mx/8, my/8), wallid)) and mx > 0 and my > 0 and mx < 256 and my < 256) then
        local gx = snap_mouse(x, mx)
        local gy = snap_mouse(y, my)
+       
+       -- if stat(1) > 0.9 then
+       --  self.goal_buffer = {gx, gy}
+       -- elseif not(goal_buffer == nil) then
+       --  gx, gy = goal_buffer[1], goal_buffer[2]
+       --  self.goal_buffer = nil
+       -- end
+       
        if not(gx == x and gy == y) then 
-        local path = astar({x, y}, {gx, gy}, self.size)
+        local path = astar({x, y}, {gx, gy}, size)
        end
        if path == nil then
         self.path = {}
@@ -441,11 +453,6 @@ add(units,{
        merge(self, other)
       end
      end
-    end
-
-    -- update cooldown
-    if cdn > 0 then
-     self.cooldown -= 1
     end
 
     -- follow path
@@ -539,7 +546,7 @@ add(units,{
      if pget(right_tgt, below_tgt) == friendlyid then
       self.attack_y = -2
       tgt_x = right_tgt
-      tgt_y = above_tgt
+      tgt_y = below_tgt
      elseif pget(x, below_tgt) == friendlyid then
       self.attack_y = 2
       tgt_y = below_tgt
@@ -563,6 +570,70 @@ add(units,{
        add_particle(flr(rnd(1.9)+col_n), tgt_x, tgt_y, flr(rnd(1.9)+1), nil, nil, rnd(.9)+1)
       end
       dx, dy = 0
+     elseif cdn == 0 then
+      self.cooldown = 90
+      local gx
+      local gy
+      for unit in all(units) do
+       local minx = 9999
+       local miny = 9999
+       if unit.id == friendlyid then
+        local distx = abs(unit.x - x)
+        local disty = abs(unit.y - y)
+        if distx < 30 and disty < 30 then
+         if distx < minx and disty < miny then
+          minx = distx
+          miny = disty
+          gx = snap_mouse(x, flr(unit.x))
+          gy = snap_mouse(y, flr(unit.y))
+         end
+        end
+       end
+      end
+      if not(gx == x and gy == y) and not(gx == nil or gy == nil) then 
+       local path = astar({x, y}, {gx, gy}, size)
+      end
+      if path == nil then
+       self.path = {}
+      else
+       self.path = path
+       self.path_index = 1
+      end
+     else
+      local path = self.path
+      if #path > 0 then
+       self.moving = true
+       t = path[1]
+       if abs(t[1] - x) < self.dx*3 and abs(t[2] - y) < self.dy*3 then
+        del(path, path[1])
+       end
+       local tx = t[1] - x
+       local ty = t[2] - y
+
+       local dx = sgn(tx)*self.dx
+       local dy = sgn(ty)*self.dy
+
+       local xtarget = midx + (1 + middle)*sgn(dx)
+       local ytarget = midy + (1 + middle)*sgn(dy)
+       local xid = pget(xtarget, y+middle)
+       local yid = pget(x+middle, ytarget)
+
+       if xid == 0 then
+        if abs(tx) > self.dx then
+         self.x += dx
+         if sgn(dx) == 1 then
+          self.left = false
+         else
+          self.left = true
+         end
+        end
+       end
+       if yid == 0 then
+        if abs(ty) > self.dy then
+         self.y += dy
+        end
+       end
+      end
      end
     elseif self.attack_time > 0 then
      self.attack_time += 1
