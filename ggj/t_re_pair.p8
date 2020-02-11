@@ -1,9 +1,10 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
+-- init --
 function _init()
-	--adjust colors to new pallete
 	--	poke(0x5f2e, 1)
+	--adjust colors to new pallete
 	for i in all({1,3,5,6,11,12,15}) do
 		pal(i, 128+i, 1)
 	end
@@ -12,9 +13,6 @@ function _init()
  left_press = false
  hold = false
  units = {}
- enemies = {}
- -- add_unit(50, 30, 1, true)
- -- add_unit(70, 30, 1, true)
  cam_x = 0
  cam_y = 0
  mxo = 0
@@ -31,6 +29,7 @@ function _init()
  -- base expansion code
  -- todo
 
+ -- initialize start screen --
  gamestate = 0
  for _=1,4 do
 		for i=1,5 do
@@ -165,25 +164,20 @@ function move_camera()
  if mp == 4 then
   if not(mid_hold) then
    mid_hold = true
-   hmx = mx
-   hmy = my
+   hmx, hmy = mx, my
   end
-  cam_dx = (hmx - mx)
-  cam_dy = (hmy - my)
-  hmx = mx
-  hmy = my
+  cam_dx, cam_dy = (hmx - mx), (hmy - my)
+  hmx, hmy = mx, my
  else
   mid_hold = false
   if mx > 116 and cam_x < 128 then
    cam_dx = 1
+  elseif mx < 18 and cam_x > -63 then
+   cam_dx = -1
   end
   if my > 116 and cam_y < 128 then
    cam_dy = 1
-  end
-  if mx < 18 and cam_x > -63 then
-   cam_dx = -1
-  end
-  if my < 18 and cam_y > -63 then
+  elseif my < 18 and cam_y > -63 then
    cam_dy = -1
   end
  end
@@ -205,7 +199,6 @@ function move_camera()
 end
 
 -->8
-
 -- table for animations
 function anim_state(a, b, c, d, e, f)
  return { spr_n = a, x_width = b, y_width = c, x_offset = d, y_offset = e }
@@ -219,28 +212,24 @@ function add_unit(x, y, unit_number, isfriendly)
  local unit_number = unit_number or 1
  local isfriendly = isfriendly or false
 
- local anim_states
- local shdw
- local size
+ local anim_states = {anim_state(7, 1, 1, 0, 0),
+                      anim_state(8, 1, 1, 0, 0)}
+ local anim_speed = 12
+ local shdw = {x = 3, y = 5, r = 3}
+ local size = 7
  local dx
  local dy
  local hp
- local id
- local attack_speed
+ local id = enemyid
+ local attack_speed = 15
 
  if isfriendly then
   id = friendlyid
- else
-  id = enemyid
  end
 
  -- unit traits
  if unit_number == 1 then
-  anim_states = {anim_state(7, 1, 1, 0, 0),
-                 anim_state(8, 1, 1, 0, 0)}
-  shdw = {x = 3, y = 5, r = 3}
   anim_speed = 9
-  attack_speed = 15
   size = 6
   dx = 0.5
   dy = 0.5
@@ -250,9 +239,6 @@ function add_unit(x, y, unit_number, isfriendly)
   anim_states = {anim_state(9, 1, 1, 0, 0),
                  anim_state(10, 1, 1, 0, 0)}
   shdw = {x = 4, y = 7, r = 3}
-  anim_speed = 12
-  attack_speed = 15
-  size = 7
   dx = 0.6
   dy = 0.6
   hp = 200
@@ -261,9 +247,6 @@ function add_unit(x, y, unit_number, isfriendly)
   anim_states = {anim_state(11, 1, 1, 0, -2),
                  anim_state(27, 1, 1, 0, -2)}
   shdw = {x = 4, y = 5, r = 3}
-  anim_speed = 12
-  attack_speed = 15
-  size = 7
   dx = 0.8
   dy = 0.8
   hp = 180
@@ -295,7 +278,6 @@ function add_unit(x, y, unit_number, isfriendly)
                  anim_state(20, 1, 1, 0, 0)}
   shdw = {x = 4, y = 8, r = 3}
   anim_speed = 9
-  attack_speed = 15
   size = 6
   dx = 0.5
   dy = 0.5
@@ -307,9 +289,6 @@ function add_unit(x, y, unit_number, isfriendly)
                  anim_state(21, 1, 1, 0, 0),
                  anim_state(22, 1, 1, 0, 0)}
   shdw = {x = 3, y = 7, r = 3}
-  anim_speed = 12
-  attack_speed = 15
-  size = 7
   dx = 0.6
   dy = 0.6
   hp = 200
@@ -318,9 +297,6 @@ function add_unit(x, y, unit_number, isfriendly)
   anim_states = {anim_state(23, 1, 1, 0, 0),
                  anim_state(24, 1, 1, 0, 0)}
   shdw = {x = 3, y = 7, r = 3}
-  anim_speed = 12
-  attack_speed = 15
-  size = 7
   dx = 0.8
   dy = 0.8
   hp = 180
@@ -771,7 +747,6 @@ function merge(unit, other)
  end
 end
 -->8
-
 -- a* --
 -- returns a path from start to goal
 -- where start and goal are arbitrary map locations
@@ -850,19 +825,15 @@ function getneighbours(pos, size)
  local y = pos[2]
 
  if not(fget(mget((x-2)/8,y/8), wallid)) then
-  -- mset((x-2)/8,y/8, 48)
   add(neighbours,{x-2,y})
  end
  if not(fget(mget((x+size)/8,y/8), wallid)) then
-  -- mset((x+size)/8,y/8, 48)
   add(neighbours,{x+2,y})
  end
  if not(fget(mget(x/8,(y-2)/8), wallid)) then
-  -- mset(x/8,(y-2)/8, 48)
   add(neighbours,{x,y-2})
  end
  if not(fget(mget(x/8,(y+size)/8), wallid)) then
-  -- mset(x/8,(y+size)/8, 48)
   add(neighbours,{x,y+2})
  end
  -- for making diagonals
@@ -918,11 +889,8 @@ function vectoindex(vec)
 end
 
 function snap_mouse(c, mc)
- if (c-mc)%2 == 0 then
-  return mc
- else
-  return mc+1
- end
+ if ((c-mc)%2 == 0) return mc
+ return mc+1
 end
 
 -- base expansion code #jona
@@ -951,7 +919,7 @@ function subset(list, length)
 end
 
 -->8
-
+-- particles --
 function add_particle(clr, x, y, r, dx, dy, lifespan)
 	clr = clr or flr(rnd(16))
 	x = x or 63
@@ -996,7 +964,7 @@ function play_select_sfx(unit_number)
 end
 
 function play_merge_sfx(unit_number)
-    sfx(5)
+	sfx(5)
 end
 
 function play_attack_sfx(unit_number)
@@ -1036,6 +1004,7 @@ function spawn_unit(enemies, number)
 end
 
 -->8
+-- updates --
 function update_start()
 	if left_press and my < 63 then
 		gamestate = 1
