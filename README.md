@@ -1,4 +1,4 @@
-# Repo for pico games and experiments  
+# Repo for PICO-8 Games and Experiments  
 
 ## faxanadu
 WIP faxanadu demake.
