@@ -1,13 +1,15 @@
-# Repo for pico games and experiments  
+# Repo for PICO-8 Games and Experiments  
+
+## faxanadu
+WIP faxanadu demake.
 
 ## mydemos
 Code snippets and random modules.
 
-## faxanadu
-In progress faxanadu demake
+## re_pair
+An RTS made in PICO. Continuation of a Global Game Jam 2020 game.
 
-## game0
-Testing folder for an in progress game
-
+## striga
+WIP game about a witch in a swedish village. 
   
 ###### Requires https://www.lexaloffle.com/pico-8.php to run.
