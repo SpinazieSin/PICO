@@ -102,9 +102,17 @@ function _update()
   end
  end
 
- spawn_team(false, 995)
- spawn_team(true, 996)
-
+	if btn(5) then
+	spawn_team(false, 995)
+	spawn_team(false, 995)
+	spawn_team(false, 995)
+	spawn_team(false, 995)
+	spawn_team(false, 995)
+	spawn_team(false, 995)
+	spawn_team(false, 995)
+	 spawn_team(false, 995)
+	 spawn_team(true, 996)
+	end
  -- resolve combat
  while #attacks > 0 do
   for unit in all(units) do
