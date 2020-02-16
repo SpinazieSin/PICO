@@ -12,11 +12,12 @@ function _init()
  poke(0x5f2d, 1)
  left_press = false
  hold = false
+ hold5 = false
  units = {}
- cam_x = 0
- cam_y = 0
- mxo = 0
- myo = 0
+ cam_init_x, cam_init_y = 0, 0
+ cam_x, cam_y = cam_init_x, cam_init_y
+ cam_saved_x, cam_saved_y = cam_x, cam_y
+ mxo, myo = 0, 0
  friendlyid = 1
  enemyid = 2
  attacks = {}
@@ -33,8 +34,8 @@ function _init()
  gamestate = 0
  for _=1,4 do
 		for i=1,5 do
-			spawn_unit(false, i)
-			spawn_unit(true, i+5)
+			spawn_unit(true, i, 10, 30, 10, 90)
+			spawn_unit(true, i+5, 70, 30, 10, 90)
 		end
 	end
 end
@@ -50,14 +51,18 @@ function _update()
   right_press = true
  end
 
- if gamestate == 0 then
-  update_start()
- else
+ if gamestate == 1 then
   -- cls for collision layer
   cls()
   -- camera
   move_camera()
   update_game()
+ elseif gamestate == 0 then
+  update_start()
+ elseif gamestate == 2 then
+  update_gamelost()
+ elseif gamestate == 3 then
+  update_gamewon()
  end
 
  -- mouse butten presses part 2
@@ -85,16 +90,33 @@ function update_game()
  end
 
  -- random spawner
- if 995 < rnd(1000) or btn(5) then
+ if 995 < rnd(1000) then
   spawn_unit(false, flr(rnd(3)+f_idstart))
  end
- if 996 < rnd(1000) or btn(5) then
+ if 996 < rnd(1000) then
   if 3 < rnd(4) then
    spawn_unit(true, flr(3+rnd(2)+e_idstart))
   else
    spawn_unit(true, flr(rnd(3)+e_idstart))
   end
  end
+
+ -- camera hotkeys
+ if btn(5) and not(hold5) then
+  hold5 = true
+  if cam_x == cam_init_x and cam_y == cam_init_y then
+   cam_x, cam_y = cam_saved_x, cam_saved_y
+  else
+   cam_x, cam_y = cam_init_x, cam_init_y
+  end
+ elseif not(btn(5)) and hold5 then
+  hold5 = false
+ end
+
+ if btn(4) then
+  cam_saved_x, cam_saved_y = cam_x, cam_y
+ end
+
 
  -- resolve combat
  while #attacks > 0 do
@@ -114,10 +136,16 @@ end
 function _draw()
  -- cls for drawing
  cls()
- if gamestate == 0 then
-  draw_start()
- else
+ if gamestate == 1 then
   map()
+ elseif gamestate == 0 then
+  draw_start()
+ elseif gamestate == 2 then
+  units = {}
+  draw_gamelost()
+ elseif gamestate == 3 then
+  units = {}
+  draw_gamewon()
  end
 
  -- draw shadows
@@ -327,7 +355,29 @@ function add_unit(x, y, unit_number, isfriendly)
   dy = 0.6
   hp = 600
   pow = 150
- end
+ elseif unit_number == -1 then
+  anim_states = {anim_state(16, 3, 3, 0, 0),
+                 anim_state(16, 3, 3, 0, 0)}
+  shdw = {x = 12, y = 19, r = 11}
+  anim_speed = 0
+  attack_speed = 30
+  size = 25
+  dx = 0
+  dy = 0
+  hp = 1000
+  pow = 0
+ elseif unit_number == -2 then
+  anim_states = {anim_state(64, 3, 4, 0, 0),
+                 anim_state(64, 3, 4, 0, 0)}
+  shdw = {x = 14, y = 26, r = 10}
+  anim_speed = 0
+  attack_speed = 30
+  size = 32
+  dx = 0
+  dy = 0
+  hp = 1000
+  pow = 0
+ end  
 
 add(units,{
   x=x,
@@ -468,7 +518,7 @@ add(units,{
      local yid = pget(x+middle, ytarget)
 
      if xid == 0 then
-      if abs(tx) > self.dx then
+      if abs(tx) > self.dx and self.unit_number > 0 then
        self.x += dx
        if sgn(dx) == 1 then
         self.left = false
@@ -574,7 +624,7 @@ add(units,{
       end
       self.goal_buffer = nil
      elseif cdn == 0 then
-      self.cooldown = 90+flr(rnd(100))
+      self.cooldown = 90+flr(rnd(50))
       local gx
       local gy
       for unit in all(units) do
@@ -583,10 +633,10 @@ add(units,{
        if unit.id == friendlyid then
         local distx = abs(unit.x - x)
         local disty = abs(unit.y - y)
-        if distx < 30 and disty < 30 then
+        if distx < 70 and disty < 70 then
          if distx < minx and disty < miny then
-          minx = distx
-          miny = disty
+          minx = distx + rnd(4) - 2
+          miny = disty + rnd(4) - 2
           gx = snap_mouse(x, flr(unit.x))
           gy = snap_mouse(y, flr(unit.y))
          end
@@ -607,40 +657,49 @@ add(units,{
        self.path = path
        self.path_index = 1
       end
-     else
+     elseif #self.path > 0 then
       local path = self.path
-      if #path > 0 then
-       self.moving = true
-       t = path[1]
-       if abs(t[1] - x) < self.dx*3 and abs(t[2] - y) < self.dy*3 then
-        del(path, path[1])
-       end
-       local tx = t[1] - x
-       local ty = t[2] - y
+      self.moving = true
+      t = path[1]
+      if abs(t[1] - x) < self.dx*3 and abs(t[2] - y) < self.dy*3 then
+       del(path, path[1])
+      end
+      local tx = t[1] - x
+      local ty = t[2] - y
 
-       local dx = sgn(tx)*self.dx
-       local dy = sgn(ty)*self.dy
+      local dx = sgn(tx)*self.dx
+      local dy = sgn(ty)*self.dy
 
-       local xtarget = midx + (1 + middle)*sgn(dx)
-       local ytarget = midy + (1 + middle)*sgn(dy)
-       local xid = pget(xtarget, y+middle)
-       local yid = pget(x+middle, ytarget)
+      local xtarget = midx + (1 + middle)*sgn(dx)
+      local ytarget = midy + (1 + middle)*sgn(dy)
+      local xid = pget(xtarget, y+middle)
+      local yid = pget(x+middle, ytarget)
 
-       if xid == 0 then
-        if abs(tx) > self.dx then
-         self.x += dx
-         if sgn(dx) == 1 then
-          self.left = false
-         else
-          self.left = true
-         end
+      if xid == 0 then
+       if abs(tx) > self.dx then
+        self.x += dx
+        if sgn(dx) == 1 then
+         self.left = false
+        else
+         self.left = true
         end
        end
-       if yid == 0 then
-        if abs(ty) > self.dy then
-         self.y += dy
-        end
+      end
+      if yid == 0 then
+       if abs(ty) > self.dy then
+        self.y += dy
        end
+      end
+     else
+      local disx = base_x - x
+      local disy = base_y - y
+      local dirx = sgn(disx)
+      local diry = sgn(disy)
+      if not(fget(mget((midx+(middle*dirx+dx))/8, midy/8), wallid)) and abs(disx) > 2 then
+       self.x += dx*dirx
+      end
+      if not(fget(mget(midy/8, (middle*diry+dy)/8), wallid)) and abs(disy) > 2 then
+       self.y += dy*diry
       end
      end
     elseif self.attack_time > 0 then
@@ -664,6 +723,13 @@ add(units,{
      add_particle(7, midx, midy, flr(rnd(1.9)+1), 0, nil, rnd(1.9)+1.5)
      add_particle(7, midx, midy - 2, flr(rnd(1.9)+1), nil, 0, rnd(1.9)+1.5)
     end
+    -- if unit_number == -1 then
+    --  if friendlyid == 1 then
+    --   gamestate = 2
+    --  else
+    --   gamestate = 3
+    --  end
+    -- end
    end
   end,
 
@@ -988,25 +1054,22 @@ function play_death_sound_effect()
  sfx(13)
 end
 
-function spawn_unit(enemies, number)
- local upper_y
- local lower_y
- local left_x
- local right_x
- if enemies then
-  upper_y = 100
-  lower_y = 70
-  left_x = 10
-  right_x = 100
- else
-  upper_y = 40
-  lower_y = 10
-  left_x = 10
-  right_x = 100
+function spawn_unit(enemies, number, y, y_offset, x, x_offset)
+ if y_offset == nil then
+  if enemies then
+   y = e_upper_y
+   y_offset = e_lower_y
+   x = e_left_x
+   x_offset = e_right_x
+  else
+   y = f_upper_y
+   y_offset = f_lower_y
+   x = f_left_x
+   x_offset = f_right_x
+  end
  end
- -- random location
- random_x = rnd(right_x - left_x) + left_x
- random_y = rnd(upper_y - lower_y) + lower_y
+ random_x = x + rnd(x_offset)
+ random_y = y + rnd(y_offset)
  add_unit(random_x, random_y, number, not(enemies))
 end
 
@@ -1022,15 +1085,31 @@ function update_start()
 	 units = {}
 	 add_unit(50, 30, 1, true)
  	add_unit(70, 30, 1, true)
+  base_x, base_y = 15, 15
+  add_unit(base_x, base_y, -1, true)
+  add_unit(220, 215, -2, false)
+  left_press = false
+  start = time()
+  f_upper_y, f_lower_y, f_left_x, f_right_x = 15, 50, 50, 20
+  e_upper_y, e_lower_y, e_left_x, e_right_x = 170, 40, 190, 10 
 	elseif left_press then
 		gamestate = 1
  	friendlyid = 2
  	enemyid = 1
  	f_idstart = 6
  	e_idstart = 1
+  cam_x, cam_y, cam_init_x, cam_init_y =  127, 130, 127, 130
+  cam_saved_x, cam_saved_y = 127, 130
  	units = {}
- 	add_unit(50, 30, 6, true)
- 	add_unit(70, 30, 6, true)
+ 	add_unit(180, 220, 6, true)
+ 	add_unit(200, 220, 6, true)
+  base_x, base_y = 220, 215
+  add_unit(base_x, base_y, -2, true)
+  add_unit(15, 15, -1, false)
+  left_press = false
+  start = time()
+  f_upper_y, f_lower_y, f_left_x, f_right_x = 170, 40, 190, 10
+  e_upper_y, e_lower_y, e_left_x, e_right_x = 15, 50, 50, 20
 	end
 end
 
@@ -1306,10 +1385,10 @@ __gff__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 464747474746474747474747474747474747474747474747474747474747474700000000000000000000000000000000000000777777777777777777776768676867687777777777777777777777777777777b0000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
-5c565756565c5d5d696969696969696969696969696969695d5d696b6b5d695f00000000000000000000000000000000000000777777777777777777777778777877787777777777777777777777777777777b0000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
-5c1011124b5c6b6b6b6b696a696a6b69696a696a695d695d695d696b5d6b695f00000000000000000000000000000000000000777777776768777767686768676867686768676867686768676867687777777b0000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
-5c2021225c696b6b696b6b7a6b6b6b5d797a797a5d7a797a6b5d6b6b695d695f00000000000000000000000000000000000000777777777778777777787778777877787778777877787778777877787777777b0000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
-5c3031325c695d6b6b6b6b6a696a6b6a696a695d696a695d5d6a6b6b5d69695f0000000000000000000000000000000000000077777777676867686768676867686768676867686768676867686768676867680000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
+5c6a6a6b6a6a6a5d696969696969696969696969696969695d5d696b6b5d695f00000000000000000000000000000000000000777777777777777777777778777877787777777777777777777777777777777b0000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
+5c6b6b6b6b6b6b6b6b6b696a696a6b69696a696a695d695d695d696b5d6b695f00000000000000000000000000000000000000777777776768777767686768676867686768676867686768676867687777777b0000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
+5c6b6b6b6b696b6b696b6b7a6b6b6b5d797a797a5d7a797a6b5d6b6b695d695f00000000000000000000000000000000000000777777777778777777787778777877787778777877787778777877787777777b0000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
+5c6a6b6b6a695d6b6b6b6b6a696a6b6a696a695d696a695d5d6a6b6b5d69695f0000000000000000000000000000000000000077777777676867686768676867686768676867686768676867686768676867680000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
 5c69695d5d5d5d5d5d6b6b7a797a6b6b795d5d5d5d5d5d5d797a797a69695d5f0000000000000000000000000000000000000077777777777877787778777877787778676877787778777877787778777877780000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
 5c695d695d5d696969695d6969695d5d695d5d6a696a5d6969695d5d5d5d5d5f00000000000000000000000000000000000000777777776768676877777777676877777778777777777777777777777777696a0000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
 5c5d695d5d5d69696969696969695d5d797a797a494a496e6e6e6e6e6e6e6e6500000000000000000000000000000000000000777777777778777877777777777867686768777777777777777777777777797a0000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
@@ -1331,12 +1410,12 @@ __map__
 5c695d6b6b6b695d6d5a7d7d777b7b777d7d7d7d777b7b68686877777d7d777f000000000000000000000000000000000000007777787777676877797a797a797a797a797a797a797a797a797a6969797a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
 5c695d6b5d69695a5a5a676768776767777d77777d7777777d7777777d777d7f000000000000000000000000000000000000007767687767777877696a696a696a696a696a696a696a6969696a696a696a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
 5c696a696a695969497d7d7d67677b7b7b7d777d777777777d7d777d777d7d7f000000000000000000000000000000000000007777787777787777797a797a797a797a797a797a797a6969797a797a797a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
-5c797a797a696959777d677b7b7b7b7b7d7d7d677d7d777d7d7d7d676767677f000000000000000000000000000000000000007767686768687777696a696a69696969696a696a696a6969696a696a696a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
-5c6969696a6969595977677b7b7b7b677d677777777d7d777d777f7574747c7f000000000000000000000000000000000000007777787778787777797a797a69696969797a797a797a6969797a797a797a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
-5c6969797a6959597d7777777b7b7b7b7d677d777d68687d77677f4041427c7f0000000000000000000000000000000000000077777777777777776969696a696a696a69696969696a696a696a696a696a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
-5c696a696a69696d7d777767677b7b7b676767676877687d77777f5051527c7f0000000000000000000000000000000000000077777777777777776969797a797a797a69696969797a797a797a797a797a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
-5c797a797a595a7d7d687767677b7b7b7b7d7d7d7768687d7d677f6061627c7f0000000000000000000000000000000000000077777777777777696a696969696a696a696a696a696a696a696a696a69696969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
-5c695d5d5d696d7d7d776868686768687d7d7d7d7d7d7d7d7d677f7071727c7f0000000000000000000000000000000000000077777777777769797a6a6969797a797a797a797a797a797a797a797a69696969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
+5c797a797a696959777d677b7b7b7b7b7d7d7d677d7d777d7d7d7d676768677f000000000000000000000000000000000000007767686768687777696a696a69696969696a696a696a6969696a696a696a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
+5c6969696a6969595977677b7b7b7b677d677777777d7d777d77677b7b7b677f000000000000000000000000000000000000007777787778787777797a797a69696969797a797a797a6969797a797a797a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
+5c6969797a6959597d7777777b7b7b7b7d677d777d68687d7767677b7b7b7b7f0000000000000000000000000000000000000077777777777777776969696a696a696a69696969696a696a696a696a696a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
+5c696a696a69696d7d777767677b7b7b676767676877687d77777b7b7b7b7b7f0000000000000000000000000000000000000077777777777777776969797a797a797a69696969797a797a797a797a797a6969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
+5c797a797a595a7d7d687767677b7b7b7b7d7d7d7768687d7d677b7b7b7b7b7f0000000000000000000000000000000000000077777777777777696a696969696a696a696a696a696a696a696a696a69696969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
+5c695d5d5d696d7d7d776868686768687d7d7d7d7d7d7d7d7d6768677b7b777f0000000000000000000000000000000000000077777777777769797a6a6969797a797a797a797a797a797a797a797a69696969000000000000000000000000006b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b
 __sfx__
 01040000180501c050180501e05000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 010500002405000000000001e05000000000001605000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
