@@ -5,8 +5,8 @@ WIP faxanadu demake.
 
 ## mydemos
 Code snippets and random modules.
-![Alt Text](https://imgur.com/WvSqJzo.gif)
 
+![Alt Text](https://imgur.com/WvSqJzo.gif)
 
 ## re_pair
 An RTS made in PICO. Continuation of a Global Game Jam 2020 game.
