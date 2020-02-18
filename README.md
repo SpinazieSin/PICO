@@ -5,7 +5,7 @@ WIP faxanadu demake.
 
 ## mydemos
 Code snippets and random modules.
-![Alt Text](https://imgur.com/WvSqJzo)
+![Alt Text](https://imgur.com/WvSqJzo.gif)
 
 
 ## re_pair
