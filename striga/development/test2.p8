@@ -1,156 +1,70 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
--- game function --
 function _init()
- plr_x = 100
- plr_y = 450
- sprint_speed = 1
+	plr_x = 133
+	plr_y = 75
+	sprint_speed = 1
 
- units = {}
- add_unit()
+--sprite animations init
+	ani_water=1
+	ani_plr=64
+--adjust colors to new pallete
+	poke(0x5f2e, 1)
+	for i in all({1,2,3,4,5,6,12,14}) do
+		pal(i, 128+i, 1)
+	end
+	
+	wall_id = 1
 end
 
 function _update()
- plr_dx = 0
- plr_dy = 0
- if btn(0) then
-  plr_x -= sprint_speed
- end
- if btn(1) then
-  plr_x += sprint_speed
- end
- if btn(2) then 
-  plr_y -= sprint_speed
- end
- if btn(3) then
-  plr_y += sprint_speed
- end
-
- for unit in all(units) do
-  unit:update()
- end
-
- camera(plr_x-63, plr_y-63)
+--camera controls
+	plr_dx = 0
+	plr_dy = 0
+	
+	if btn(4) then
+		sprint_speed += 1
+		wall_id = 0
+	end
+	if btn(5) and not(sprint_speed < 2) then
+		sprint_speed -= 1
+		wall_id = 1
+	end
+	if btn(0) and not(plr_col(-1, 0) or plr_col(-1, 4) or plr_col(-1,7)) then
+		plr_x -= sprint_speed
+	end
+	if btn(1) and not(plr_col(8, 0) or plr_col(8, 4) or plr_col(8,7)) then
+		plr_x += sprint_speed
+	end
+	if btn(2) and not(plr_col(0, -1) or plr_col(4, -1) or plr_col(7,-1)) then 
+		plr_y -= sprint_speed
+	end
+	if btn(3) and not(plr_col(0, 8) or plr_col(4, 8) or plr_col(7,8)) then
+		plr_y += sprint_speed
+	end
+	camera(plr_x-63, plr_y-63)
+--sprite animations
+	ani_water+=0.0625
+	if ani_water > 2.9 then
+			ani_water=1
+	end
+	ani_plr+=0.0625
+	if ani_plr > 65.9 then
+			ani_plr=64
+	end
 end
 
 function _draw()
- cls()
- map(0, 0, 0, 0, 128, 128)
-
- for unit in all(units) do
-  unit:shadow()
- end
-
- for unit in all(units) do
-  unit:draw()
- end
-
- spr(2, plr_x, plr_y)
+	cls()	
+	map(0, 0, 0, 0, 128, 128)
+	spr(ani_plr, plr_x, plr_y)	
 end
 -->8
--- unit function --
 
--- the function to add all functions --
-function add_unit(x, y)
- -- set default unit traits
- local x = x or plr_x - 20
- local y = y or plr_y - 20
-
- local dx = 0.5
- local dy = 0.5
-
- local sprite = 96
-
- local shdw = {x = 4, y = 8, r = 2}
-
- add(units, {
-
-   -- unit traits --
-   x = x,
-   y = y,
-   dx = dx,
-   dy = dy,
-   sprite = sprite,
-   shdw = shdw,
-
-   -- update the unit --
-   update = function(self)
-    if btn(5) then
-     self.x += self.dx
-     self.y += self.dy
-    end
-   end,
-
-   -- draw the unit --
-   draw = function(self)
-     spr(self.sprite, self.x, self.y)
-   end,
-
-   -- draw the shadow --
-   shadow = function(self)
-    local shdw = self.shdw
-    -- circfill(self.x + shdw.x, self.y + shdw.y, shdw.r, 0)
-   end
-  })
+function plr_col(x, y)
+	return (fget(mget((plr_x+x)/8, (plr_y+y)/8), wall_id))
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 __gfx__
 8800008822222222ccaaccccaaaaaaaa0005040055555655556566ee555555550005050000000000000050555055555066666666666767666666666600006066
 8880008822222222ccaaccccaaaaaaaa00054000e565565555555555555555555000050005550005555555555055505066666666766667666777666766666666
