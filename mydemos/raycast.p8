@@ -14,9 +14,11 @@ end
 
 function _update()
  if btn(2) then
+  -- todo: collision
   posx += dirx * movespeed
   posy += diry * movespeed
  elseif btn(3) then
+  -- todo: collision
   posx -= dirx * movespeed
   posy -= diry * movespeed
  end
