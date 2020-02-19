@@ -6,8 +6,12 @@ WIP faxanadu demake.
 ## mydemos
 Code snippets and random modules.
 
+![Alt Text](https://imgur.com/WvSqJzo.gif)
+
 ## re_pair
 An RTS made in PICO. Continuation of a Global Game Jam 2020 game.
+
+![Alt Text](https://imgur.com/wLh5zmA.gif)
 
 ## striga
 WIP game about a witch in a swedish village. 
