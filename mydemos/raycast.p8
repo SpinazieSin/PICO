@@ -3,40 +3,44 @@ version 18
 __lua__
 
 function _init()
-	posx, posy = 10, 10
-	dirx, diry = 1, 1
-	planex, planey = 0, 0.66
- movespeed, rotspeed = 0.5, 0.01
+	-- plain variables
+	dirx, diry = -1, 0
+	planex, planey = 0, 0.5
+
+ -- player variables
+ posx, posy = 10, 10
+ movespeed, rotspeed = 0.2, 0.01
 	
+ -- pico8 screen height and width
  h = 127
  w = 127
 end
 
 function _update()
  if btn(2) then
-  if mget((posx + dirx * movespeed)/8, posy/8) < 1 then
+  if mget((posx + dirx * movespeed), posy) < 1 then
    posx += dirx * movespeed
   end
-  if mget(posx/8, (posy + diry * movespeed)/8) < 1 then
+  if mget(posx, (posy + diry * movespeed)) < 1 then
    posy += diry * movespeed
   end
  elseif btn(3) then
-  if mget((posx - dirx * movespeed)/8, posy/8) < 1 then
+  if mget((posx - dirx * movespeed), posy) < 1 then
    posx -= dirx * movespeed
   end
-  if mget(posx/8, (posy - diry * movespeed)/8) < 1 then
+  if mget(posx, (posy - diry * movespeed)) < 1 then
    posy -= diry * movespeed
   end
  end
 
- if btn(0) then
+ if btn(1) then
   olddirx = dirx
   dirx = dirx * cos(rotspeed) - diry * sin(rotspeed)
   diry = olddirx * sin(rotspeed) + diry * cos(rotspeed)
   oldplanex = planex
   planex = planex * cos(rotspeed) - planey * sin(rotspeed)
   planey = oldplanex * sin(rotspeed) + planey * cos(rotspeed)
- elseif btn(1) then
+ elseif btn(0) then
   olddirx = dirx
   dirx = dirx * cos(-rotspeed) - diry * sin(-rotspeed)
   diry = olddirx * sin(-rotspeed) + diry * cos(-rotspeed)
@@ -56,25 +60,28 @@ function _draw()
 end
 
 function draw3d()
+ local drawend = h/2
+ local wallx = 0
+ local side = 0
+ 
+ -- step direction
+ local stepx = 0
+ local stepy = 0
+
  for x=0,127 do
-  camerax = 2 * (x / 127) - 1
+  local wallhit = false
+  local camerax = (2 * x) / w - 1
   
-  raydirx = dirx + planex * camerax
-  raydiry = diry + planey * camerax
+  local raydirx = dirx + planex * camerax
+  local raydiry = diry + planey * camerax
+  
+  local deltadistx = abs(1 / raydirx)
+  local deltadisty = abs(1 / raydiry)
 
-  mapx = posx
-  mapy = posy
+  local mapx = flr(posx)
+  local mapy = flr(posy)
 
-  deltadistx = abs(1 / raydirx)
-  deltadisty = abs(1 / raydiry)
-
-  -- step direction
-  stepx = 0
-  stepy = 0
-
-  wallhit = false
-  side = 0
-
+  -- ray direction
   if raydirx < 0 then
    stepx = -1
    sidedistx = (posx - mapx) * deltadistx
@@ -90,6 +97,7 @@ function draw3d()
    sidedisty = (mapy + 1 - posy) * deltadisty
   end
 
+  -- scan for walls
   wallcolor = 8
   while not(wallhit) do
    if sidedistx < sidedisty then
@@ -101,20 +109,22 @@ function draw3d()
     mapy += stepy
     side = 1
    end
-   if mget(mapx/8, mapy/8) > 0 then
+   if mget(mapx, mapy) > 0 then
     wallhit = true
-    wallcolor = mget(mapx/8, mapy/8)
+    wallcolor = mget(mapx, mapy)
    end
   end
   
+  -- calc distance to wall
   if side == 0 then
    perpwalldist = (mapx - posx + (1 - stepx) / 2) / raydirx
   else
    perpwalldist = (mapy - posy + (1 - stepy) / 2) / raydiry
   end
 
-  lineheight = (h / perpwalldist)
-  drawstart = -lineheight / 2 + h / 2
+  -- find the height to draw the wall
+  local lineheight = (h / perpwalldist)
+  local drawstart = -lineheight / 2 + h / 2
   if drawstart < 0 then
    drawstart = 0
   end
@@ -123,12 +133,7 @@ function draw3d()
    drawend = h - 1
   end
 
-  -- wallcolor = 8
-
-  -- if side == 1 then
-  --  wallcolor = 7
-  -- end
-
+  -- draw the wall
   line(x, drawstart, x, drawend, wallcolor)
  end
 end
@@ -152,8 +157,8 @@ __map__
 0101010000010101010101010105050500000505050508000000000000000000000d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0100000000000000010000000105000000000000000509000000000000000000000c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 010000000000000001000000010500000000000000050a000000000000000000000b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-010000000000000001000000010500000000000000050b000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-010000000000000001000000010500000000000000050c000000000000000000000900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+010000000000000000000000010500000000000000050b000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+010000000000000000000000010500000000000000050c000000000000000000000900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 010000000000000001000000010500000000000000050d000000000000000000000f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 01010101010101000101010101050505000005050505080e0f0908090a0b0c0d0e0800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000303030300030300000000000000000500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
