@@ -12,7 +12,7 @@ function _init()
  left, jump, up, vine = false, false, false, false
 
 	-- flower and branch colors
-	flwrcols = {2, 8, 9, 10, 14}
+	flwrcols = {7, 8, 9, 10, 14}
 	brnchcols = {3, 11}
 	flowers = {}
 end
@@ -50,9 +50,6 @@ function _draw()
   hmirror = true
  end
  spr(sprite, sx, sy, 1, 1, hmirror) 
- print("mem:"..stat(0))
- print("cpu:"..stat(1))
- print("cpu2:"..stat(2))
 end
 
 -->8
@@ -136,7 +133,8 @@ function add_flower(x, y)
  local y = y or sy
  local brnch = brnchcols[flr(1+rnd(2))]
  local flwr = flwrcols[flr(1+rnd(5))]
-	local life = rnd(60) + 1
+	local life = rnd(40) + 1
+ local bloom_size = rnd(2)
 	add(flowers, {
 		x = x,
 		y = y,
@@ -144,18 +142,22 @@ function add_flower(x, y)
 		brnch = brnch,
 		flwr = flwr,
 		life = life,
+  bloom_size = bloom_size,
   bloom = false,
 		update = function(self)
 			if self.life > 0 then
 				self.life -= 1
 				self.h += 0.1
 			elseif not(self.bloom) then
-    -- bloom here
+    self.bloom = true
    end
 		end,
 		
 		draw = function(self)
    line(self.x, self.y, self.x, self.y - self.h, self.brnch)
+   if self.bloom then
+    circfill(self.x, self.y - self.h, self.bloom_size, self.flwr)
+   end
 		end
 	})
 end
