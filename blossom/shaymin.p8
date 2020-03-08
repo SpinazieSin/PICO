@@ -23,7 +23,7 @@ function _init()
  camy = 0
 end
 
-function _update30()
+function _update()
  if (sx+3)%127 == 0 and sx > 0 then
   if sx > mid_screen then
    sx += 5
