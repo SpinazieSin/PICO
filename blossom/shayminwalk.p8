@@ -5,10 +5,13 @@ __lua__
 function _init()
  -- gametime
  gt = 0
+ gamestart = true
  
  -- shaymin variables
  sprite = 16
  sx, sy = 20, 90
+ dsy = 0
+ sleeptimer = 0
  sleeping = true
  sleeping_dir = 1
  left, jump, up, vine = false, false, false, false
@@ -18,25 +21,20 @@ function _init()
 	brnchcols = {3, 11}
 	flowers = {}
 
- --
+ -- screen variables
  scroll_dir = 0
  mid_screen = 63
- camx = 0
- camy = 0
+ camx, camy = 0, 0
+ background_color = 12
+ fading=0
+ fadespeed=90
+ dark = false
+ setdarkness = false
 end
 
 function _update()
- if (sx+3)%127 == 0 and sx > 0 then
-  if sx > mid_screen then
-   sx += 5
-   scroll_dir = 2
-   mid_screen += 127
-  elseif sx < mid_screen then
-   sx -= 5
-   scroll_dir = -2
-   mid_screen -= 127
-  end
- end
+ -- scroll the screen
+ scroll_screen()
 
  -- increment gametime
  if not(scroll_dir == 0) then
@@ -53,20 +51,22 @@ function _update()
  move()
 
  -- falling
- if not(fget(mget((sx+1)/8, (sy+6)/8), 0) or fget(mget((sx+6)/8, (sy+6)/8), 0)) and not(vine or up) then
+ if not(fget(mget((sx+1)/8, (dsy+sy+6)/8), 0) or fget(mget((sx+6)/8, (dsy+sy+6)/8), 0)) and not(vine or up) then
   sy += 1
   sprite = 3
  elseif not(jump or vine or sleeping) then
   sprite = 1
+  dsy = 0
  end
  
+ -- update shaymins flowers
  for flwr in all(flowers) do
  	flwr:update()
  end
 end
 
 function _draw()
- cls(12)
+ cls(background_color)
  map()
  
  for flwr in all(flowers) do
@@ -84,6 +84,19 @@ end
 -- movement functions --
 function move()
  if sleeping then
+  if sleeptimer < 180 then
+   sleeptimer += 1
+  elseif not(gamestart) and not(setdarkness) then
+   if not(dark) then
+    fadeout()
+    dark = true
+   else
+    pal()
+    dark = false
+   end
+   setdarkness = true
+  end
+  
   if sprite < 16 then
    sprite = 19
    sleeping_dir = -1
@@ -92,6 +105,7 @@ function move()
   if sprite == 16 and (btn(4) or btn(5)) then
    sprite += 1
    sleeping_dir = 1
+   sleeptimer = 0
   end
 
   if sprite > 16 and gt%10 == 0 then
@@ -101,6 +115,8 @@ function move()
   if sprite == 20 then
    sprite = 1
    sleeping = false
+   setdarkness = false
+   gamestart = false
   end
  else
   move_shaymin()
@@ -142,6 +158,7 @@ function move_shaymin()
  -- get input for jump
  if btn(5) and not(jump) then
   jump = true
+  sfx(2) 
  end
 
  -- jump shaymin
@@ -178,6 +195,34 @@ function move_shaymin()
    gt += 1
   end
  end
+end
+
+function scroll_screen()
+ if (sx+3)%127 == 0 and sx > 0 then
+  if sx > mid_screen then
+   sx += 5
+   scroll_dir = 2
+   mid_screen += 127
+  elseif sx < mid_screen then
+   sx -= 5
+   scroll_dir = -2
+   mid_screen -= 127
+  end
+ end
+end
+
+function fadeout()
+ fading+=1
+ if fading%fadespeed==1 then
+  for i in all({3,11,4,5,6,12,14}) do
+   pal(i, 128+i, 1)
+  end
+  pal(7, 6)
+ end
+end
+
+function fadein()
+ pal()
 end
 
 -->8
@@ -288,3 +333,11 @@ __map__
 4343434343434343434343444443434300000000000000000000000000004343414144444141000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 4343414341434343434343414143434100000000000000000000000000004343434343434343000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 4141414141414141414141414141414100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- __sfx__
+-- 000200000d01116060120600d06004060000600100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 010900003a022320222e0222c0523a0523a0523a0523a055331003210032100321003210032100311003010000000000000000000000000000000000000000000000000001000010000100000000000000000000
+-- 010300000a7140d721117311b74126713005000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 012a00003803431032330323303500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- __music__
+-- 00 00014344
+
