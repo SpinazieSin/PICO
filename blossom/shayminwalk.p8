@@ -90,9 +90,11 @@ function move()
    if not(dark) then
     fadeout()
     dark = true
+    fading = 0
    else
     pal()
     dark = false
+    fading = 0
    end
    setdarkness = true
   end
@@ -115,8 +117,8 @@ function move()
   if sprite == 20 then
    sprite = 1
    sleeping = false
-   setdarkness = false
    gamestart = false
+   setdarkness = fals
   end
  else
   move_shaymin()
@@ -214,10 +216,9 @@ end
 function fadeout()
  fading+=1
  if fading%fadespeed==1 then
-  for i in all({3,11,4,5,6,12,14}) do
+  for i in all({7, 3,11,4,5,6,12,14}) do
    pal(i, 128+i, 1)
   end
-  pal(7, 6)
  end
 end
 
