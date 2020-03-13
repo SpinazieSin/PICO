@@ -267,9 +267,11 @@ function add_flower(x, y)
 		end,
 		
 		draw = function(self)
-   line(self.x, self.y, self.x, self.y - self.h, self.brnch)
+   local wave = flr(sin(gt/80))
+   line(self.x, self.y, self.x + wave, self.y - self.h, self.brnch)
    if self.bloom then
-    circfill(self.x, self.y - self.h, self.bloom_size, self.flwr)
+
+    circfill(self.x + wave, self.y - self.h, self.bloom_size, self.flwr)
    end
 		end
 	})
