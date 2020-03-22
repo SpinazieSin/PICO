@@ -6,7 +6,7 @@ function _init()
  -- gametime
  gt = 0
  gamestart = true
- event = false
+ freeze = false
  
  -- shaymin variables
  sprite = 16
@@ -36,12 +36,12 @@ function _init()
  add_unit(63, 63, 1, 0)
 end
 
-function _update()
+function _update60()
  -- scroll the screen
  scroll_screen()
 
  -- increment gametime
- if not(event) then
+ if not(freeze) then
   gt += 1
   if btn(4) then
   	sfx(1)
@@ -54,14 +54,14 @@ function _update()
    camera(camx, camy)
    if camx % 128 == 0 then
     scroll_dir_x = 0
-    event = false
+    freeze = false
    end
   elseif not(scroll_dir_y == 0) then
    camy += scroll_dir_y
    camera(camx, camy)
    if camy % 128 == 0 then
     scroll_dir_y = 0
-    event = false
+    freeze = false
    end
   end
  end
@@ -70,7 +70,7 @@ function _update()
  move()
 
  -- falling
- if not(fget(mget((sx+1)/8, (sy+6)/8), 0) or fget(mget((sx+6)/8, (sy+6)/8), 0)) and not(vine or up or event) then
+ if not(fget(mget((sx+1)/8, (sy+6)/8), 0) or fget(mget((sx+6)/8, (sy+6)/8), 0)) and not(vine or up or freeze) then
   dsy+= 0.2
   if (dsy > 1) dsy = 1
   sy += flr(dsy)
@@ -236,7 +236,7 @@ end
 
 function scroll_screen()
  if (sx+3)%127 == 0 and sx > 0 then
-  event = true
+  freeze = true
   if sx > mid_screen_x then
    sx += 5
    scroll_dir_x = 2
@@ -248,7 +248,7 @@ function scroll_screen()
   end
  end
  if (sy+3)%127 == 0 then
-  event = true
+  freeze = true
   if sy > mid_screen_y then
    sy += 5
    scroll_dir_y = 2
@@ -340,7 +340,7 @@ function add_unit(x, y, unit_number, event)
 
    -- update the npc event state
    if unit_number == 1 then
-    event = update_belossom()
+    event = update_belossom(x)
    else
     -- default
    end
@@ -376,7 +376,7 @@ function add_unit(x, y, unit_number, event)
    local event = self.event
 
    if unit_number == 1 then
-    self.timer = draw_belossom(x, y, timer)
+    self.timer = draw_belossom(x, y, timer, event)
    else
     -- default
    end
@@ -384,9 +384,13 @@ function add_unit(x, y, unit_number, event)
   })
 end
 
-function update_belossom()
+function update_belossom(x)
  -- belossom has no events at the moment
- return 0
+ if sx < x+8 then
+  return 0
+ else
+  return 1
+ end
 end
 
 function draw_belossom(x, y, timer, event)
