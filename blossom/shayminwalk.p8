@@ -30,13 +30,15 @@ function _init()
  fading = 0
  fadespeed = 90
  dark, setdarkness = false, false
+
+ -- npc variables
+ units = {}
+ add_unit(63, 63, 1, 0)
 end
 
-function _update60()
+function _update()
  -- scroll the screen
  scroll_screen()
-
-
 
  -- increment gametime
  if not(event) then
@@ -77,6 +79,16 @@ function _update60()
   sprite = 1
   dsy = 0
  end
+
+ -- update npcs
+ for unit in all(units) do
+  unit:update()
+ end
+
+ -- move npcs
+ for unit in all(units) do
+  unit:move()
+ end
  
  -- update shaymins flowers
  for flwr in all(flowers) do
@@ -88,6 +100,10 @@ function _draw()
  cls(background_color)
  map()
  
+ for unit in all(units) do
+  unit:draw()
+ end
+
  for flwr in all(flowers) do
  	flwr:draw()
  end
@@ -298,6 +314,108 @@ function add_flower(x, y)
 		end
 	})
 end
+
+-->8
+-- add unit --
+function add_unit(x, y, unit_number, event)
+ local x = x or mid_screen_x
+ local y = y or mid_screen_y
+ local unit_number = unit_number or 1
+ local event = event or 0
+
+ add(units, {
+  x = x,
+  y = y,
+  unit_number = unit_number,
+  event = event,
+  timer = 0,
+
+  update = function(self)
+   -- npc state
+   local x = self.x
+   local y = self.y
+   local timer = self.timer
+   local unit_number = self.unit_number
+   local event = self.event
+
+   -- update the npc event state
+   if unit_number == 1 then
+    event = update_belossom()
+   else
+    -- default
+   end
+
+   self.timer += 1
+   self.event = event
+  end,
+
+  move = function(self)
+   -- npc state
+   local x = self.x
+   local y = self.y
+   local timer = self.timer
+   local unit_number = self.unit_number
+   local event = self.event
+
+   -- only move relevant units
+   if unit_number == 0 then
+    -- this is the default unit, it does nothing
+   end
+
+   -- update location
+   self.x = x
+   self.y = y
+  end,
+
+  draw = function(self)
+   -- npc state
+   local x = self.x
+   local y = self.y
+   local timer = self.timer
+   local unit_number = self.unit_number
+   local event = self.event
+
+   if unit_number == 1 then
+    self.timer = draw_belossom(x, y, timer)
+   else
+    -- default
+   end
+  end
+  })
+end
+
+function update_belossom()
+ -- belossom has no events at the moment
+ return 0
+end
+
+function draw_belossom(x, y, timer, event)
+ local sprite = 33
+ local hmirror = false
+ 
+ -- sometimes belossom can turn around
+ if event == 1 then
+  hmirror = true
+ end
+
+ -- belossom dances
+ if timer < 12 then
+  sprite = 33
+ elseif timer < 24 then
+  sprite = 35
+ elseif timer < 36 then
+  sprite = 37
+ elseif timer < 48 then
+  sprite = 35
+ else
+  timer = 0
+ end
+
+ spr(sprite, x, y, 2, 2, hmirror)
+
+ return timer
+end
+
 
 __gfx__
 000000000000000000bbbb0000bbbb00000000000bbb00000bbb000000000000000000000000000000000000000001000000000000c000000000a00000000000
