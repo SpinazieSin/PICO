@@ -34,9 +34,10 @@ function _init()
  -- npc variables
  units = {}
  add_unit(63, 63, 1, 0)
+ add_unit(20, 20, 2, 0)
 end
 
-function _update60()
+function _update()
  -- scroll the screen
  scroll_screen()
 
@@ -341,6 +342,8 @@ function add_unit(x, y, unit_number, event)
    -- update the npc event state
    if unit_number == 1 then
     event = update_belossom(x)
+   elseif unit_number == 2 then
+    event = update_swablu()
    else
     -- default
    end
@@ -377,6 +380,8 @@ function add_unit(x, y, unit_number, event)
 
    if unit_number == 1 then
     self.timer = draw_belossom(x, y, timer, event)
+   elseif unit_number == 2 then
+    self.timer = draw_swablu(x, y, timer, event)
    else
     -- default
    end
@@ -387,9 +392,9 @@ end
 function update_belossom(x)
  -- belossom has no events at the moment
  if sx < x+8 then
-  return 0
+  return 0 -- 0 means face left
  else
-  return 1
+  return 1 -- 1 means face right
  end
 end
 
@@ -420,6 +425,39 @@ function draw_belossom(x, y, timer, event)
  return timer
 end
 
+function update_swablu()
+ return 0 -- nothing yet
+end
+
+function draw_swablu(x, y, timer, event)
+ -- flying swable
+ if event == 0 then
+  local hmirror = false
+  local yoffset = 0
+
+  -- flap wings
+  if timer < 5 then
+   yoffset = 2
+   spr(100, x+13, y, 2, 2)
+   spr(100, x-11, y, 2, 2, true)
+  elseif timer < 10 then
+   spr(114, x+13, y+4, 2, 1)
+   spr(114, x-11, y+4, 2, 1, true)
+  end
+
+  if timer == 9 then
+   timer = 0
+  end
+
+  spr(102, x, y + yoffset, 2, 2, hmirror)
+  pset(x+7,y+7 + yoffset, 0)
+  pset(x+3,y+7 + yoffset, 0)
+ else
+  timer = 0
+ end
+
+ return timer
+end
 
 __gfx__
 000000000000000000bbbb0000bbbb00000000000bbb00000bbb000000000000000000000000000000000000000001000000000000c000000000a00000000000
