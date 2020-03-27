@@ -30,20 +30,18 @@ function _update()
   dialogue_index += 1
  end
  
-	if btn(3) and not(drawing) and not(#chapters[chapter] == dialogue) then
-  dialogue += 1
+	if btn(3) and not(drawing) and not(#story[chapter].text == story[chapter].index) then
+  story[chapter].index += 1
   drawing = true
 	end
- if btn(2) and dialogue > 1 then
-  dialogue -= 1
+ if btn(2) and story[chapter].index > 1 then
+  story[chapter].index -= 1
  end
  if btn(0) then
   chapter = 1
-  dialogue = 1
   dialogue_index = 1
  elseif btn(1) then
   chapter = 2
-  dialogue = 1
   dialogue_index = 1 
  end
 	
@@ -53,13 +51,20 @@ end
 function _draw()
  cls()
  
- local c = chapters[chapter]
+ local c = story[chapter]
+ local y = 0
  print(chapter, 122, 118, 7)
  
- for i=1,dialogue do
-  local d = c[i]
-  local y, col, text, final, x = d[1], d[2], d[3], d[4], d[5]
+ for i=1,story[chapter].index do
+  local d = c.text[i]
+  local text, final, y_offset, col, x = d[1], d[2], d[3], d[4], d[5]
   
+  if y_offset == nil then
+   y += y_sep
+  else
+   y += y_offset
+  end
+
   if x == nil then
    x = 1
   end
@@ -68,13 +73,17 @@ function _draw()
    final = false
   end
 
- 	if dialogue == i and drawing then
+  if col == nil then
+   col = 7
+  end
+
+ 	if story[chapter].index == i and drawing then
    if dialogue_index < #text then
   		print(sub(text, 1, dialogue_index), x, y, col)
  			dialogue_index += 1
    elseif not(final) then
     print(text, x, y, col)
-    dialogue += 1
+    story[chapter].index += 1
     dialogue_index = 1
    else
     print(text, x, y, col)
@@ -92,25 +101,39 @@ function event()
 end
 
 function load_dialogue()
-	chapters = {
-  {
- 		{1, 7, "i am writing this under an"},
-   {10, 7, "appreciable mental strain, ", true},
-   {19, 7, "by tonight i shall be no more.", true},
- 		{32, 7, "penniless,"},
-   {41, 7, "and at the end of my supply", true},
-   {50, 7, "of the drug"},
-   {59, 7, "which alone makes life endurable;", true},
-   {68, 7, "i can bear the torture no longer"}, 
-   {77, 7, "and shall cast myself", true},
-   {86, 7, "from this garret window", true},
-   {95, 7, "into the squalid street below.", true},
-   {37, 7, "...", true}
+	story = {
+  {index = 1,
+   text = {
+ 		{"i am writing this under an"},
+   {"appreciable mental strain, ", true},
+   {"by tonight i shall be no more.", true},
+ 		{"penniless,", false, 16},
+   {"and at the end of my supply", true},
+   {"of the drug"},
+   {"which alone makes life endurable;", true},
+   {"i can bear the torture no longer"}, 
+   {"and shall cast myself", true},
+   {"from this garret window", true},
+   {"into the squalid street below.", true},
+   {"...", true}}
   },{
-   {1, 7, "do not think from my slavery to morphine that i am a weakling or a degenerate. when you have read these hastily scrawled pages you may guess, though never fully realise, why it is that i must have forgetfulness or death."},
-   {10, 7, "...", true}
+   index = 1,
+   text = {
+   {"do not think"},
+   {"from my slavery to morphine", true},
+   {"that i am a weakling", true},
+   {"or a degenerate.", true},
+   {"when you have read", false, 16},
+   {"these hastily scrawled pages", true},
+   {"you may guess,", true},
+   {"though never fully realise,", true},
+   {"why it is that"},
+   {"i must have forgetfulness", true},
+   {"or death.", true}}
   },{
-   {1, 7, "...", true}
+   index = 1,
+   text = {
+   {1, 7, "...", true}}
   }
 	}
 end
