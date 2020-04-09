@@ -101,6 +101,8 @@ function event()
 end
 
 function load_dialogue()
+ -- format:
+ -- {"text", break, verticaloffset, color, xposition}
 	story = {
   {index = 1,
    text = {
