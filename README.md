@@ -20,5 +20,9 @@ An RTS made in PICO. Continuation of a Global Game Jam 2020 game.
 
 ## striga
 WIP game about a witch in a swedish village. 
+
+## tree
+Prototype that produces random trees
+![Alt text](https://i.imgur.com/nN0taJn.gif)
   
 ###### Requires https://www.lexaloffle.com/pico-8.php to run.
