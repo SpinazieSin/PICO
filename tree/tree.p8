@@ -5,20 +5,26 @@ __lua__
 
 function _init()
  zoom_factor = 2
- branch_factor = 2
+ branch_factor = 3
  maxangle = 200
  maxangle2 = maxangle/2
- minspeed = 10
- maxlen = 10
+ minspeed = 5
+ maxlen = 20
+
+ -- branch probability is 1/p_branch per frame
+ p_branch = 100
 
  -- zoom level
- zoom_level = 0
+ zoom_level = 1
 
  -- gametime
  gt = 0
 
  -- camera
  cx, cy = 0, 0
+
+ -- player
+ px, py = 63, 100
 
  -- branch list
  branches = {} 
@@ -32,17 +38,29 @@ function _update()
  -- update gametime
  gt = gt + 1
 
- --
+ -- update camera
  update_camera()
  
  -- update branches
  for branch in all(branches) do
   branch:update()
+  
+  -- only unsprouted, complete branches may sprout
   if branch.sprouted == 0 and branch.complete then
-   local n_branches = flr(rnd(branch_factor)+1)
-   branch.sprouted = n_branches
-   for i=0,n_branches do
-    make_branch(branch.xn, branch.yn, rnd(maxlen)+10, branch.angle+(rnd(maxangle)-maxangle2)/1000, rnd(minspeed)/minspeed)
+
+   local pb = p_branch
+   -- player branch prob
+   if abs(px - branch.xc) + abs(py - branch.yc) < 10 then
+    -- pb = pb/10
+   end
+
+   -- check branch prob
+   if rnd(pb) < 2 then
+    local n_branches = flr(rnd(branch_factor)+1)
+    branch.sprouted = n_branches
+    for i=0,n_branches do
+     make_branch(branch.xn, branch.yn, rnd(maxlen)+10, branch.angle+(rnd(maxangle)-maxangle2)/1000, rnd(minspeed)/minspeed)
+    end
    end
   end
  end
@@ -55,6 +73,8 @@ function _draw()
  for branch in all(branches) do
   branch:draw()
  end
+
+ -- spr(0, px, py)
 end
 
 -->8
@@ -100,7 +120,7 @@ function make_branch(x0, y0, len, angle, speed)
 
   -- draw
   draw = function(self)
-   line(self.x0, self.y0, self.xc, self.yc, self.col)
+   line(self.x0/zoom_level, self.y0/zoom_level, self.xc/zoom_level, self.yc/zoom_level, self.col)
   end
   })
 end
@@ -126,19 +146,21 @@ function update_camera()
  end
 
  if btn(5) then
-  zoom_level = 0
+  zoom_level = 1
  end
 
  cx = cx + cdx
  cy = cy + cdy
+ px = px + cdx
+ py = py + cdy
  camera(cx, cy)
 end
 
 
 __gfx__
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+44444440000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+fcffcf40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffffff40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+09999440000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+09999040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0e00e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
