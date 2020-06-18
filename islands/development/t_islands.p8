@@ -99,8 +99,9 @@ function add_boy(x, y)
    local momentum = self.momentum + 0.1
 
    local momentum_scale = momentum
-   local arm_scale = momentum + 0.4*sin(ct)
+   local arm_scale = 0
    if momentum > 0.5 then
+    arm_scale = momentum + 0.4*sin(ct)
     momentum_scale = momentum + 0.4*sin(ct)
    end
 
@@ -139,8 +140,8 @@ function add_boy(x, y)
 
 
 
-   local larm_angle = angle + 0.25 + 0.15 * sin(ct/2)
-   local rarm_angle = angle - 0.25 + 0.15 * sin(ct/2)
+   local larm_angle = angle + 0.25 + 0.12 * sin(ct/2)
+   local rarm_angle = angle - 0.25 + 0.12 * sin(ct/2)
    self.larmxn = larmx + arm_scale * 4 *sin(larm_angle)
    self.larmyn = larmy + arm_scale * 4 *cos(larm_angle)
    self.rarmxn = rarmx + arm_scale * 4 *sin(rarm_angle)
@@ -199,7 +200,7 @@ function spr_r(s,x,y,a)
    local yy=flr(dx*sa+dy*ca+y0)
    if (xx>=0 and xx and yy>=0 and yy<=sh) then
     col = sget(sx+xx,sy+yy)
-    if col ~= 1 then
+    if col > 0 then
      pset(x+ix,y+iy,col)
     end
    end
