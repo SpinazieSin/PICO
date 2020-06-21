@@ -9,13 +9,15 @@ function _init()
 
  -- all ingame objects
  objects = {}
+ arms = {}
 
  -- spawn player
+ add_arm(69, 66, true)
+ add_arm(63, 66, false)
  add_boy(63, 63)
- g_larmx = 63+0
- g_larmy = 63+3
- g_rarmx = 63+6
- g_rarmy = 63+3
+ girlx = 30
+ girly = 63
+ add_girl(girlx, girly)
 end
 
 function _update()
@@ -38,6 +40,98 @@ function _draw()
 end
 
 -->8
+-- arms
+function add_arm(x, y, left)
+ return {
+  l1_angle = 0,
+  l1_x = x,
+  l1_y = y,
+
+  l2_x = 0,
+  l2_y = 0,
+  l2_len = 3,
+  l2_angle = 0,
+  
+  l3_x = 0,
+  l3_y = 0,
+  l3_len = 4,
+  l3_angle = 0.25,
+
+  left = left,
+  scale = 1,
+  momentum = 0,
+  pointing = false,
+  girl_angle = 0,
+  cycle_time = 28,
+
+  update = function(self)
+   local momentum = self.momentum
+
+   -- regular walking
+   if momentum > 0.1 and not self.pointing then
+    local scale = self.scale
+    local ct = gt/self.cycle_time
+    local sc = scale*sin(ct)-- + self.l1_angle
+    local sc2 = sc
+
+    if self.left then
+     self.l2_angle = 0.28 - 0.10*sc2
+     self.l3_angle = -0.2 - 0.10*sc2
+    else
+     self.l2_angle = -0.28 - 0.10*sc2
+     self.l3_angle = 0.2 - 0.10*sc2
+    end
+   elseif self.pointing then
+    self.l2_angle = self.girl_angle
+    self.l3_angle = 0
+   end
+  end,
+
+  draw = function(self)
+   local momentum = self.momentum
+
+   local angle = self.l1_angle
+   local sa = sin(angle)
+   local ca = cos(angle)
+   local aox = 4 - 4 * ca
+   local aoy = 4 * sa
+   if self.left then
+    aox = - 2 + 2 * ca
+    aoy = - 3 * sa
+   end
+
+   local l1_x = self.l1_x + aox
+   local l1_y = self.l1_y + aoy
+   local l2_len = self.l2_len * momentum
+   local l2_angle = self.l2_angle + angle
+   local l3_len = self.l3_len * momentum
+   local l3_angle = self.l3_angle + l2_angle
+
+   -- link 2 coords
+   local l2_x = l1_x - l2_len * sin(l2_angle)
+   local l2_y = l1_y - l2_len * cos(l2_angle)
+
+   -- link 3 coords
+   local l3_x = l2_x - l3_len * sin(l3_angle)
+   local l3_y = l2_y - l3_len * cos(l3_angle)
+
+   -- update variables
+   self.l2_x = l2_x
+   self.l2_y = l2_y
+   self.l3_x = l3_x
+   self.l3_y = l3_y
+
+   line(l1_x, l1_y, l2_x, l2_y, 7)
+   line(l2_x, l2_y, l3_x, l3_y, 7)
+   -- line(self.larmx + 4 - laox, self.larmy + laoy, self.larmxn + 4 - laox, self.larmyn + laoy, 7)
+   -- line(self.rarmx - 2 + raox, self.rarmy - raoy, self.rarmxn - 2 + raox, self.rarmyn - raoy, 7)
+
+  end
+  }
+end
+
+
+-->8
 -- player character
 function add_boy(x, y)
  add(objects, {
@@ -55,19 +149,10 @@ function add_boy(x, y)
   arm_len = 3,
 
   -- left arm
-  larmx = x,
-  larmy = y+3,
-  larmxn = x,
-  larmyn = y+3,
-  larm_angle = -0.25,
+  larm = add_arm(x, y+3, false),
 
   -- right arm
-  rarmx = x+6,
-  rarmy = y+3,
-  rarmxn = x+6,
-  rarmyn = y+3,
-  rarm_angle = 0.25,
-
+  rarm = add_arm(x+6, y+3, true),
   
   update = function(self)
    local px = self.x
@@ -76,6 +161,12 @@ function add_boy(x, y)
    local dy = 0
    local d_angle = 0
    local ct = gt/self.cycle_time
+   local pointing = false
+
+   if btn(4) then
+    pointing = true
+
+   end
    
    -- turning
    if btn(0) then
@@ -99,7 +190,7 @@ function add_boy(x, y)
    local momentum = self.momentum + 0.1
 
    local momentum_scale = momentum
-   local arm_scale = 0
+   local arm_scale = 1
    if momentum > 0.5 then
     arm_scale = momentum + 0.4*sin(ct)
     momentum_scale = momentum + 0.4*sin(ct)
@@ -128,58 +219,59 @@ function add_boy(x, y)
    self.y = py + dy
 
    -- update arms
-   local larmx = self.larmx + dx-- - sin(angle)*turning
-   local larmy = self.larmy + dy-- - sin(angle)*turning
-   local rarmx = self.rarmx + dx-- + sin(angle)*turning
-   local rarmy = self.rarmy + dy
+   local larmx = self.larm.l1_x + dx-- - sin(angle)*turning
+   local larmy = self.larm.l1_y + dy-- - sin(angle)*turning
+   local rarmx = self.rarm.l1_x + dx-- + sin(angle)*turning
+   local rarmy = self.rarm.l1_y + dy
 
-   self.larmx = larmx
-   self.larmy = larmy
-   self.rarmx = rarmx
-   self.rarmy = rarmy
+   self.larm.l1_x = larmx
+   self.larm.l1_y = larmy
+   self.rarm.l1_x = rarmx
+   self.rarm.l1_y = rarmy
 
+   self.larm.l1_angle = angle
+   self.rarm.l1_angle = angle
 
+   self.larm.scale = arm_scale
+   self.rarm.scale = arm_scale
 
-   local larm_angle = angle + 0.25 + 0.12 * sin(ct/2)
-   local rarm_angle = angle - 0.25 + 0.12 * sin(ct/2)
-   self.larmxn = larmx + arm_scale * 4 *sin(larm_angle)
-   self.larmyn = larmy + arm_scale * 4 *cos(larm_angle)
-   self.rarmxn = rarmx + arm_scale * 4 *sin(rarm_angle)
-   self.rarmyn = rarmy + arm_scale * 4 *cos(rarm_angle)
+   self.larm.momentum = momentum
+   self.rarm.momentum = momentum
 
-   -- local arm_len = self.arm_len * momentum
-   -- local xturn = sin(angle)*(d_angle/0.05)
-   -- local yturn = cos(angle)*(d_angle/0.05)
-   -- local larmx = self.larmx + dx - xturn
-   -- local larmy = self.larmy + dy - yturn
-   -- local rarmx = self.rarmx + dx + xturn
-   -- local rarmy = self.rarmy + dy + yturn
-   -- self.larmx = larmx
-   -- self.larmy = larmy
-   -- self.rarmx = rarmx
-   -- self.rarmy = rarmy
-   
-   -- self.larmxn = larmx + arm_len * sin(larm_angle) - xturn
-   -- self.larmyn = larmy + arm_len * cos(larm_angle) + xturn
-   -- self.rarmxn = 1 + rarmx + arm_len * sin(rarm_angle)
-   -- self.rarmyn = rarmy + arm_len * cos(rarm_angle)
-
+   self.larm:update()
+   self.rarm:update()
   end,
 
   draw = function(self)
    local angle = self.angle
-   local sa = sin(angle)
-   local ca = cos(angle)
-   local laox = 4 * ca
-   local laoy = 4 * sa
-   local raox = 2 * ca
-   local raoy = 3 * sa
-   line(self.larmx + 4 - laox, self.larmy + laoy, self.larmxn + 4 - laox, self.larmyn + laoy, 7)
-   line(self.rarmx - 2 + raox, self.rarmy - raoy, self.rarmxn - 2 + raox, self.rarmyn - raoy, 7)
+   local x = self.x
+   local y = self.y
+   print(angle)
+   print(atan2(x - girlx, y - girly))---angle)
+   self.larm:draw()
+   self.rarm:draw()
    spr_r(0, self.x, self.y, self.angle)
   end
   })
 end
+-->8
+-- girl code
+function add_girl(x, y)
+ add(objects, {
+  x = x,
+  y = y,
+
+  update = function(self)
+   girlx = self.x
+   girly = self.y
+  end,
+
+  draw = function(self)
+   circfill(self.x,self.y,1,9)
+  end
+  })
+end
+
 -->8
 -- rotate sprite code
 function spr_r(s,x,y,a)
