@@ -11,8 +11,8 @@ function _init()
  pt = {}
  pt.x, pt.y = tx, ty
 
- alen = 8
- clen = 8
+ alen = 16
+ clen = 16
 
 end
 
@@ -46,7 +46,7 @@ function _update()
  local by = 0
  local offset = 1
  
- if blen > 16 then
+ if blen > alen+clen then
   ja = handangle(ox, oy, tx, ty)
   jb = ja
   offset = -1
@@ -55,10 +55,10 @@ function _update()
   jb = ja-jointb(alen, blen, clen)---0.5
  end
 
- cx = ox-alen*sin(ja)
- cy = oy-alen*cos(ja)
- bx = cx+clen*sin(jb)*offset
- by = cy+clen*cos(jb)*offset
+ cx = ox-clen*sin(ja)
+ cy = oy-clen*cos(ja)
+ bx = cx+alen*sin(jb)*offset
+ by = cy+alen*cos(jb)*offset
 
  line(cx, cy, bx, by, 7)
  line(ox, oy, cx, cy, 10)
