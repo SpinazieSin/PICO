@@ -124,6 +124,7 @@ function make_branch(x0, y0, len, angle, speed)
   end
   })
 end
+
 -->8
 function update_camera()
  local cdx = 0
